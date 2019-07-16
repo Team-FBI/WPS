@@ -2,7 +2,11 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from locations.models import State
+import json
+import datetime
 # Create your models here.
+
+
 
 def n_tuple(n, first=[], last=[]):
     return tuple(first + [(i, i) for i in range(1, n)] + last)
@@ -103,7 +107,7 @@ class Room(models.Model):
     clean_rating = models.SmallIntegerField(default=0)
     value_rating = models.SmallIntegerField(default=0)
     total_rating = models.SmallIntegerField(default=0)
-
+    reserved_dates = models.TextField(editable=False, default="")
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -122,6 +126,41 @@ class Room(models.Model):
     def __str__(self):
         return f"{self.slug} / {self.host}"
 
+    def reserved_update(self):
+        """
+        ReservedDates의 외래키 릴레이트 네임인 reserveds를 통해 작동함
+        1. place의 모든 예약 날짜의 퀴리셋을 받는다. (start_date, end_date를 이용하기 위함)
+        2. 총 날짜를 계산한다. ex) start_date = 19.07.01, end_date = 19.07.05라면
+        reserved_list = [190701, 190702, 190703, 190704, 190705] 가 저장 됨
+        3. 그것을 place의 reserved_date에 제이슨으로 변경하여 스트링으로 저장한다.
+        * why : 필드값에 배열로 저장 할 수 없기 때문에 str로 변경 한 것임
+        """
+
+        reserved_list = []
+        for reserved in self.reserveds.all():
+            reserved_days = (reserved.end_date - reserved.start_date).days + 1
+            reserved_list.extend(
+                [int((reserved.start_date + datetime.timedelta(days=i)).strftime('%y%m%d')) for i in
+                 range(reserved_days)])
+        self.reserved_dates = json.dumps(reserved_list)
+        self.save()
+
+    def reserved_list(self):
+        """
+        ReservedDates의 외래키 릴레이트 네임인 reserveds를 통해 작동함
+        1. place의 모든 예약 날짜의 퀴리셋을 받는다. (start_date, end_date를 출력하기 위해서)
+        2. 모든 쿼리셋을 검색하여 예약 리스트를 만든다.
+        return: [[190701, 190705], ...]
+
+        부킹이 완료되면 - >
+        """
+
+        reserved_date_list = []
+        for reserved in self.reserveds.all():
+            reserved_date_list.append(
+                [int(reserved.start_date.strftime('%y%m%d')), int(reserved.end_date.strftime('%y%m%d'))])
+        return json.dumps(reserved_date_list)
+
 
 class ReservedDates(models.Model):
 
@@ -138,6 +177,11 @@ class Booking(models.Model):
     price = models.PositiveIntegerField(default=0)
     number_guest = models.PositiveIntegerField(default=0)
     nights = models.PositiveIntegerField(default=0)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.room.reserved_update()
+        return super().save()
 
 
 class RoomReview(models.Model):
