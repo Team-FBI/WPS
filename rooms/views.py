@@ -7,7 +7,7 @@ from rest_framework.permissions import (
     IsAuthenticated,
     DjangoModelPermissionsOrAnonReadOnly,
 )
-from rooms.models import Room
+from .models import Room
 from rooms.serializers import (
     RoomListSerializer,
     RoomCreateSerializer,
@@ -178,13 +178,13 @@ class RoomDetailView(generics.RetrieveAPIView):
         [status] -- [PUT-HTTP_204_NO_CONTENT]
     
     """
-
     serializer_class = RoomDetailSerializer
     permission_classes = (AllowAny,)
 
     def get_queryset(self):
         room_id = self.kwargs["pk"]
         queryset = Room.objects.filter(id=room_id)
+        print(queryset)
         return queryset
 
     @response_error_handler
@@ -198,7 +198,7 @@ class BookingCreateAPI(generics.CreateAPIView):
     serializer_class = BookingCreateSerializer
     permission_classes = (IsAuthenticated,)
 
-    @response_error_handler
+    # @response_error_handler
     def post(self, request, *args, **kwargs):
-        request.POST["user"] = request.user
+        request.room_id = int(self.kwargs.get('pk'))
         return super().post(request, *args, **kwargs)

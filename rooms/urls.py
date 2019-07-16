@@ -7,4 +7,5 @@ urlpatterns = [
     path("create/", views.RoomCreateView.as_view()),
     path("<int:pk>/", views.RoomDetailView.as_view()),
     path("update/<int:pk>/", views.RoomUpdateView.as_view()),
+    path("<int:pk>/booking/", views.BookingCreateAPI.as_view()),
 ]

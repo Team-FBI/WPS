@@ -12,12 +12,12 @@ NO_OF_ROOMS = n_tuple(10)
 MIN_STAY = n_tuple(90)
 MAX_STAY = n_tuple(60, first=[(0, "Unlimited")])
 NO_OF_BEDS = n_tuple(20, first=[(0, "-")])
-room_RATING = n_tuple(6, first=[(0, "Not rated")])
+ROOM_RATING = n_tuple(6, first=[(0, "Not rated")])
 ORDER = n_tuple(20, first=[(0, "-")])
 MAX_GUEST = n_tuple(20, first=[(0, "-")])
 
 
-room_TYPES = [
+ROOM_TYPES = [
     (1, "Apartment"),
     (2, "House"),
     (3, "Garden House"),
@@ -87,7 +87,7 @@ class Room(models.Model):
     image = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
     price = models.PositiveIntegerField(blank=True, null=True)
     capacity = models.SmallIntegerField(choices=NO_OF_BEDS, default=6)
-    room_type = models.SmallIntegerField(choices=room_TYPES, default=1)
+    room_type = models.SmallIntegerField(choices=ROOM_TYPES, default=1)
     space = models.SmallIntegerField(choices=SPACE_TYPES, default=1)
     bedroom = models.SmallIntegerField(choices=NO_OF_ROOMS, default=1)
     bed_type = models.SmallIntegerField(choices=BATHROOM_TYPES, default=1)

@@ -31,7 +31,6 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "description",
             "email",
             "rooms",
-            "reservations",
         ]
 
 

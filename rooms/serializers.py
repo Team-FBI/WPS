@@ -20,7 +20,7 @@ class RoomCreateSerializer(serializers.ModelSerializer):
         source="get_capacity_display", choices=Room.NO_OF_BEDS
     )
     room_type = serializers.ChoiceField(
-        source="get_room_type_display", choices=Room.PLACE_TYPES
+        source="get_room_type_display", choices=Room.ROOM_TYPES
     )
     space = serializers.ChoiceField(
         source="get_space_display", choices=Room.SPACE_TYPES
@@ -77,7 +77,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         source="get_capacity_display", choices=Room.NO_OF_BEDS
     )
     room_type = serializers.ChoiceField(
-        source="get_room_type_display", choices=Room.PLACE_TYPES
+        source="get_room_type_display", choices=Room.ROOM_TYPES
     )
     space = serializers.ChoiceField(
         source="get_space_display", choices=Room.SPACE_TYPES
@@ -100,45 +100,30 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     max_stay = serializers.ChoiceField(
         source="get_max_stay_display", choices=Room.MAX_STAY
     )
-    accuracy_rating = serializers.ChoiceField(
-        source="get_accuracy_rating_display", choices=Room.PLACE_RATING
-    )
-    location_rating = serializers.ChoiceField(
-        source="get_location_rating_display", choices=Room.PLACE_RATING
-    )
-    communication_rating = serializers.ChoiceField(
-        source="get_communication_rating_display", choices=Room.PLACE_RATING
-    )
-    checkin_rating = serializers.ChoiceField(
-        source="get_checkin_rating_display", choices=Room.PLACE_RATING
-    )
-    clean_rating = serializers.ChoiceField(
-        source="get_clean_rating_display", choices=Room.PLACE_RATING
-    )
-    value_rating = serializers.ChoiceField(
-        source="get_value_rating_display", choices=Room.PLACE_RATING
-    )
     class Meta:
         model = Room.Room
         fields = "__all__"
 
 class BookingCreateSerializer(serializers.ModelSerializer):
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
+    start_date = serializers.DateField(source='reservation.start_date')
+    end_date = serializers.DateField(source='reservation.end_date')
 
     class Meta:
         model = Booking
-        fields = (
-            "user",
-            "reservation",
-            "room",
+        fields = [
             "price",
             "number_guest",
             "nights",
             "start_date",
             "end_date",
-        )
+        ]
 
     def create(self, validated_data):
-        validated_data
-        ReservedDates.create
+        validated_data['user'] = self.context.get('view').request.user
+        room_id = self.context.get('view').request.room_id
+        reservation = ReservedDates.objects.create(start_date=validated_data['reservation']['start_date'],
+                                                   end_date=validated_data['reservation']['end_date'], room_id=room_id)
+        validated_data['reservation'] = reservation
+        booking = Booking.objects.create(**validated_data, room_id=room_id)
+
+        return booking
