@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rooms import models as Room
+from .models import Booking, ReservedDates
 
 class RoomListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -120,3 +121,24 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room.Room
         fields = "__all__"
+
+class BookingCreateSerializer(serializers.ModelSerializer):
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
+
+    class Meta:
+        model = Booking
+        fields = (
+            "user",
+            "reservation",
+            "room",
+            "price",
+            "number_guest",
+            "nights",
+            "start_date",
+            "end_date",
+        )
+
+    def create(self, validated_data):
+        validated_data
+        ReservedDates.create

@@ -1,5 +1,5 @@
 from django.db.models import Q
-from rest_framework import viewsets
+from rest_framework.viewsets import generics
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, action
 from rest_framework.permissions import (
@@ -12,8 +12,10 @@ from rooms.serializers import (
     RoomListSerializer,
     RoomCreateSerializer,
     RoomDetailSerializer,
+    BookingCreateSerializer,
 )
 from config.utils import response_error_handler
+from .models import Booking
 
 
 def filter_backend(queryset, query_params):
@@ -41,7 +43,7 @@ def filter_backend(queryset, query_params):
     return queryset
 
 
-class RoomListView(viewsets.generics.ListAPIView):
+class RoomListView(generics.ListAPIView):
     """A function, able to get list of Room
     - GET
     Arguments:
@@ -99,7 +101,7 @@ class RoomListView(viewsets.generics.ListAPIView):
         return super().list(request, *args, **kwargs)
 
 
-class RoomCreateView(viewsets.generics.CreateAPIView):
+class RoomCreateView(generics.CreateAPIView):
     """A function, able to Post and register new Room
     
     Arguments:
@@ -120,7 +122,7 @@ class RoomCreateView(viewsets.generics.CreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
-class RoomUpdateView(viewsets.generics.UpdateAPIView):
+class RoomUpdateView(generics.UpdateAPIView):
     """A function, able to put new data to update room
     
     Arguments:
@@ -154,7 +156,7 @@ class RoomUpdateView(viewsets.generics.UpdateAPIView):
             raise PermissionError("you are no host or staff", "dont do it")
 
 
-class RoomDetailView(viewsets.generics.RetrieveAPIView):
+class RoomDetailView(generics.RetrieveAPIView):
     """A function, able to GET Room Detail data
     - GET
     Arguments:
@@ -191,3 +193,12 @@ class RoomDetailView(viewsets.generics.RetrieveAPIView):
             return super().get(request, *args, **kwargs)
         except Exception:
             raise ValueError("Room id Not found", "check room id")
+
+class BookingCreateAPI(generics.CreateAPIView):
+    serializer_class = BookingCreateSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @response_error_handler
+    def post(self, request, *args, **kwargs):
+        request.POST["user"] = request.user
+        return super().post(request, *args, **kwargs)
