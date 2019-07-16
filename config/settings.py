@@ -1,7 +1,23 @@
 import os
+import json
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET_KEY = "m#zip_opmuc$ss6ildut)5w+p61uoke3$^cm7y#no0_=5@@_b^"
+secret_file = os.path.join(BASE_DIR, 'secrets.json')
+
+with open(secret_file) as f:
+    secrets = json.loads(f.read())
+
+
+def get_secret(setting, secrets=secrets):
+    try:
+        return secrets[setting]
+    except KeyError:
+        error_msg = "Set the {} environment variable".format(setting)
+        raise ImproperlyConfigured(error_msg)
+
+
+SECRET_KEY = get_secret("SECRET_KEY")
 
 DEBUG = True
 
@@ -103,8 +119,8 @@ USE_TZ = True
 # local serving
 STATIC_URL = "/static/"
 
-AWS_ACCESS_KEY_ID = 'AKIAXLCPJI5AUCPLZKOS'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = get_secret("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = get_secret('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = 'ap-northeast-2'
 AWS_STORAGE_BUCKET_NAME = 'static.tthae.com'
 AWS_S3_CUSTOM_DOMAIN = AWS_STORAGE_BUCKET_NAME
