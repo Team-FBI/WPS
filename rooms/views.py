@@ -1,21 +1,18 @@
 from django.db.models import Q
 from rest_framework.viewsets import generics
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, action
 from rest_framework.permissions import (
     AllowAny,
     IsAuthenticated,
-    DjangoModelPermissionsOrAnonReadOnly,
 )
-from .models import Room
+from .models import Room, Reservation
 from rooms.serializers import (
     RoomListSerializer,
     RoomCreateSerializer,
     RoomDetailSerializer,
-    BookingCreateSerializer,
+    ReservationCreateSerializer
 )
 from config.utils import response_error_handler
-from .models import Booking
 
 
 def filter_backend(queryset, query_params):
@@ -37,7 +34,7 @@ def filter_backend(queryset, query_params):
             queryset = queryset.filter(capacity__gte=capacity)
     except Exception:
         raise AttributeError("filter attribute error", "querystrng wasnt good")
-    paged = queryset[(perpage * page - perpage) : (perpage * page)]
+    paged = queryset[(perpage * page - perpage): (perpage * page)]
     if len(paged):
         return paged
     return queryset
@@ -145,9 +142,9 @@ class RoomUpdateView(generics.UpdateAPIView):
     @response_error_handler
     def put(self, request, *args, **kwargs):
         if (
-            request.user == self.get_queryset()[0].host
-            or request.user.is_staff
-            or request.user.is_superuser
+                request.user == self.get_queryset()[0].host
+                or request.user.is_staff
+                or request.user.is_superuser
         ):
             response = super().put(request, *args, **kwargs)
             response.status_code = 204
@@ -194,11 +191,31 @@ class RoomDetailView(generics.RetrieveAPIView):
         except Exception:
             raise ValueError("Room id Not found", "check room id")
 
-class BookingCreateAPI(generics.CreateAPIView):
-    serializer_class = BookingCreateSerializer
+
+# class BookingCreateAPI(generics.CreateAPIView):
+#     serializer_class = BookingCreateSerializer
+#     permission_classes = (IsAuthenticated,)
+#
+#     # @response_error_handler
+#     def post(self, request, *args, **kwargs):
+#         request.room_id = int(self.kwargs.get('pk'))
+#         return super().post(request, *args, **kwargs)
+
+class ReservationCreateAPI(generics.CreateAPIView):
+    serializer_class = ReservationCreateSerializer
     permission_classes = (IsAuthenticated,)
 
-    # @response_error_handler
+    def is_reserved_date(self, start_date, end_date):
+        room_id = self.kwargs.get('pk')
+        start_date_q = Q(start_date__lte=start_date, end_date__gte=start_date)
+        end_date_q = Q(start_date__lte=end_date, end_date__gte=end_date)
+        return Reservation.objects.filter(room_id=room_id).filter(end_date_q | start_date_q).exists()
+
     def post(self, request, *args, **kwargs):
+        start_date, end_date = request.data['start_date'], request.data['end_date']
+        if self.is_reserved_date(start_date, end_date):
+            return Response(data="is already reserved date")
+
         request.room_id = int(self.kwargs.get('pk'))
+
         return super().post(request, *args, **kwargs)

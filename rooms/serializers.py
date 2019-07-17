@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rooms import models as Room
-from .models import Booking, ReservedDates
+from .models import Reservation
+
 
 class RoomListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -14,6 +15,7 @@ class RoomListSerializer(serializers.ModelSerializer):
             "price",
             "description",
         ]
+
 
 class RoomCreateSerializer(serializers.ModelSerializer):
     capacity = serializers.ChoiceField(
@@ -43,6 +45,7 @@ class RoomCreateSerializer(serializers.ModelSerializer):
     max_stay = serializers.ChoiceField(
         source="get_max_stay_display", choices=Room.MAX_STAY
     )
+
     class Meta:
         model = Room.Room
         # fields = [
@@ -72,6 +75,7 @@ class RoomCreateSerializer(serializers.ModelSerializer):
             "host",
         ]
 
+
 class RoomDetailSerializer(serializers.ModelSerializer):
     capacity = serializers.ChoiceField(
         source="get_capacity_display", choices=Room.NO_OF_BEDS
@@ -100,30 +104,48 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     max_stay = serializers.ChoiceField(
         source="get_max_stay_display", choices=Room.MAX_STAY
     )
+
     class Meta:
         model = Room.Room
         fields = "__all__"
 
-class BookingCreateSerializer(serializers.ModelSerializer):
-    start_date = serializers.DateField(source='reservation.start_date')
-    end_date = serializers.DateField(source='reservation.end_date')
 
+# class BookingCreateSerializer(serializers.ModelSerializer):
+#     start_date = serializers.DateField(source='reservation.start_date')
+#     end_date = serializers.DateField(source='reservation.end_date')
+#
+#     class Meta:
+#         model = Booking
+#         fields = [
+#             "price",
+#             "number_guest",
+#             "nights",
+#             "start_date",
+#             "end_date",
+#         ]
+#
+#     def create(self, validated_data):
+#         validated_data['user'] = self.context.get('view').request.user
+#         room_id = self.context.get('view').request.room_id
+#         reservation = ReservedDates.objects.create(start_date=validated_data['reservation']['start_date'],
+#                                                    end_date=validated_data['reservation']['end_date'], room_id=room_id)
+#         validated_data['reservation'] = reservation
+#         booking = Booking.objects.create(**validated_data, room_id=room_id)
+#
+#         return booking
+
+class ReservationCreateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Booking
-        fields = [
+        model = Reservation
+        fields = (
             "price",
             "number_guest",
-            "nights",
             "start_date",
             "end_date",
-        ]
+        )
 
     def create(self, validated_data):
         validated_data['user'] = self.context.get('view').request.user
         room_id = self.context.get('view').request.room_id
-        reservation = ReservedDates.objects.create(start_date=validated_data['reservation']['start_date'],
-                                                   end_date=validated_data['reservation']['end_date'], room_id=room_id)
-        validated_data['reservation'] = reservation
-        booking = Booking.objects.create(**validated_data, room_id=room_id)
-
-        return booking
+        reservation = Reservation.objects.create(**validated_data, room_id=room_id)
+        return reservation

@@ -1,11 +1,8 @@
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from locations.models import State
-import json
-import datetime
-# Create your models here.
-
 
 
 def n_tuple(n, first=[], last=[]):
@@ -19,7 +16,6 @@ NO_OF_BEDS = n_tuple(20, first=[(0, "-")])
 ROOM_RATING = n_tuple(6, first=[(0, "Not rated")])
 ORDER = n_tuple(20, first=[(0, "-")])
 MAX_GUEST = n_tuple(20, first=[(0, "-")])
-
 
 ROOM_TYPES = [
     (1, "Apartment"),
@@ -78,7 +74,6 @@ REVIEW_STATUS = [
 
 
 class Room(models.Model):
-
     host = models.ForeignKey(
         get_user_model(), on_delete=models.CASCADE, related_name="rooms"
     )
@@ -100,19 +95,16 @@ class Room(models.Model):
     min_stay = models.SmallIntegerField(choices=MIN_STAY, default=1)
     max_stay = models.SmallIntegerField(choices=MAX_STAY, default=0)
     description = models.TextField(blank=True, null=True)
-    accuracy_rating = models.SmallIntegerField(default=0)
-    location_rating = models.SmallIntegerField(default=0)
-    communication_rating = models.SmallIntegerField(default=0)
-    checkin_rating = models.SmallIntegerField(default=0)
-    clean_rating = models.SmallIntegerField(default=0)
-    value_rating = models.SmallIntegerField(default=0)
-    total_rating = models.SmallIntegerField(default=0)
-    reserved_dates = models.TextField(editable=False, default="")
+    accuracy_rating = models.FloatField(default=0)
+    location_rating = models.FloatField(default=0)
+    communication_rating = models.FloatField(default=0)
+    checkin_rating = models.FloatField(default=0)
+    clean_rating = models.FloatField(default=0)
+    value_rating = models.FloatField(default=0)
+    total_rating = models.FloatField(default=0)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-
 
     def save(self):
         self.slug = slugify(self.title, allow_unicode=True)
@@ -120,75 +112,34 @@ class Room(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-updated_at"]
-        # get_latest_by = "timestamp"
-        # verbose_name = 'room'
 
     def __str__(self):
         return f"{self.slug} / {self.host}"
 
-    def reserved_update(self):
-        """
-        ReservedDates의 외래키 릴레이트 네임인 reserveds를 통해 작동함
-        1. place의 모든 예약 날짜의 퀴리셋을 받는다. (start_date, end_date를 이용하기 위함)
-        2. 총 날짜를 계산한다. ex) start_date = 19.07.01, end_date = 19.07.05라면
-        reserved_list = [190701, 190702, 190703, 190704, 190705] 가 저장 됨
-        3. 그것을 place의 reserved_date에 제이슨으로 변경하여 스트링으로 저장한다.
-        * why : 필드값에 배열로 저장 할 수 없기 때문에 str로 변경 한 것임
-        """
 
-        reserved_list = []
-        for reserved in self.reserveds.all():
-            reserved_days = (reserved.end_date - reserved.start_date).days + 1
-            reserved_list.extend(
-                [int((reserved.start_date + datetime.timedelta(days=i)).strftime('%y%m%d')) for i in
-                 range(reserved_days)])
-        self.reserved_dates = json.dumps(reserved_list)
-        self.save()
-
-    def reserved_list(self):
-        """
-        ReservedDates의 외래키 릴레이트 네임인 reserveds를 통해 작동함
-        1. place의 모든 예약 날짜의 퀴리셋을 받는다. (start_date, end_date를 출력하기 위해서)
-        2. 모든 쿼리셋을 검색하여 예약 리스트를 만든다.
-        return: [[190701, 190705], ...]
-
-        부킹이 완료되면 - >
-        """
-
-        reserved_date_list = []
-        for reserved in self.reserveds.all():
-            reserved_date_list.append(
-                [int(reserved.start_date.strftime('%y%m%d')), int(reserved.end_date.strftime('%y%m%d'))])
-        return json.dumps(reserved_date_list)
-
-
-class ReservedDates(models.Model):
-
+class Reservation(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reservations')
     start_date = models.DateField()
     end_date = models.DateField()
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reserveds')
-
-
-class Booking(models.Model):
-
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, )
-    reservation = models.ForeignKey(ReservedDates, on_delete=models.CASCADE, related_name='booking')
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='booking')
     price = models.PositiveIntegerField(default=0)
     number_guest = models.PositiveIntegerField(default=0)
-    nights = models.PositiveIntegerField(default=0)
+    is_payed = models.BooleanField(default=False)
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        self.room.reserved_update()
-        return super().save()
+    def is_valid_date(self):
+        Q_start_date = Q(start_date__lt=self.end_date)
+        Q_end_date = Q(end_date__gt=self.start_date)
+
+        if (self.room.reservations.filter(~Q_start_date & ~Q_end_date).exists()):
+            return False
+        return True
 
 
 class RoomReview(models.Model):
     """장소에 대한 유저의 리뷰"""
-    writer = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, related_name='room_review')
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='review')
-    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='room_review')
+    writer = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, related_name='reviews')
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reviews')
+    booking = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='reviews')
     text = models.TextField(blank=True)
 
     active = models.BooleanField(default=True)
@@ -201,5 +152,3 @@ class RoomReview(models.Model):
         self.total_rating = round(((self.rating_1 + self.rating_2) / 2), 2)
         super(RoomReview, self).save()
         self.room.room_rating()
-
-
