@@ -214,7 +214,7 @@ class ReservationCreateAPI(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data['start_date'], request.data['end_date']
         if self.is_reserved_date(start_date, end_date):
-            return Response(data="is already reserved date")
+            return Response({'error': 'The date is already checked in'})
 
         request.room_id = int(self.kwargs.get('pk'))
 
