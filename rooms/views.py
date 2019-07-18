@@ -1,6 +1,7 @@
 from django.db.models import Q
 from rest_framework.viewsets import generics
 from rest_framework.response import Response
+from rest_framework import exceptions
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Room, Reservation
 from rooms.serializers import (
@@ -70,9 +71,6 @@ class RoomListView(generics.ListAPIView):
         PermissionError: [POST-HTTP_401_UNAUTHORIZED]
     Returns:
         [status] -- [POST-201_CREATED]
-    
-
-    
     """
 
     serializer_class = RoomListSerializer
@@ -176,6 +174,19 @@ class RoomDetailView(generics.RetrieveAPIView):
     Returns:
         [status] -- [PUT-HTTP_204_NO_CONTENT]
     
+    - POST Reservation for detailed room
+    "room_detail_get_url + /reservation/"
+    A function, able to POST Reservation create request.
+    
+    Arguments:
+        generics {[CreateAPIView]} -- [POST handler]
+    
+    Raises:
+        ValueError: [POST-HTTP_400_BAD_REQUEST]
+        ValidationError: [POST-HTTP_400_BAD_REQUEST]
+    
+    Returns:
+        [status] -- [POST-HTTP_201_CREATED]
     """
 
     serializer_class = RoomDetailSerializer
@@ -206,6 +217,18 @@ class RoomDetailView(generics.RetrieveAPIView):
 
 
 class ReservationCreateAPI(generics.CreateAPIView):
+    """A function, able to POST Reservation create request.
+    
+    Arguments:
+        generics {[CreateAPIView]} -- [POST handler]
+    
+    Raises:
+        ValueError: [POST-HTTP_400_BAD_REQUEST]
+        ValidationError: [POST-HTTP_400_BAD_REQUEST]
+    
+    Returns:
+        [status] -- [POST-HTTP_201_CREATED]
+    """
     serializer_class = ReservationCreateSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -218,12 +241,11 @@ class ReservationCreateAPI(generics.CreateAPIView):
             .filter(end_date_q | start_date_q)
             .exists()
         )
-
+    @response_error_handler
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
         if self.is_reserved_date(start_date, end_date):
-            return Response({"error": "The date is already checked in"})
-
+            raise ValueError("Date already reservated!", "check for another date.")
         request.room_id = int(self.kwargs.get("pk"))
 
         return super().post(request, *args, **kwargs)

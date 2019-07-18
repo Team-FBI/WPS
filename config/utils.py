@@ -12,7 +12,7 @@ def response_error_handler(func: Callable) -> Callable:
             return func(*args, **kwargs)
         except Exception as e:
             err = BaseException("Base Error", "sorry, Unknown Error.")
-            res_code = status.HTTP_204_NO_CONTENT
+            res_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             if isinstance(e, ConnectionRefusedError):
                 err = e
                 res_code = status.HTTP_405_METHOD_NOT_ALLOWED
@@ -27,7 +27,7 @@ def response_error_handler(func: Callable) -> Callable:
                 res_code = status.HTTP_400_BAD_REQUEST
             if isinstance(e, ValueError):
                 err = e
-                res_code = status.HTTP_404_NOT_FOUND
+                res_code = status.HTTP_400_BAD_REQUEST
             data = {"alert": err.args[0], "solution": err.args[-1]}
             return Response(data=data, status=res_code)
     return _wrapper
