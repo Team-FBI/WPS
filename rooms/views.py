@@ -208,10 +208,7 @@ class RoomDetailView(generics.RetrieveAPIView):
 
     @response_error_handler
     def get(self, request, *args, **kwargs):
-        try:
-            return super().get(request, *args, **kwargs)
-        except ValueError as e:
-            raise e
+        return super().get(request, *args, **kwargs)
 
 
 class ReservationCreateView(generics.CreateAPIView):
@@ -247,5 +244,4 @@ class ReservationCreateView(generics.CreateAPIView):
         if self.is_reserved_date(start_date, end_date):
             raise ValueError("Date already reservated!", "check for another date.")
         request.room_id = int(self.kwargs.get("pk"))
-
         return super().post(request, *args, **kwargs)
