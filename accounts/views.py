@@ -80,7 +80,7 @@ class UserDetailView(viewsets.generics.RetrieveUpdateAPIView):
     def put(self, request, *args, **kwargs):
         if (
             request.user == self.get_queryset()[0]
-            or request.user.is_stafrest_framework.authtokenf
+            or request.user.is_staff
             or request.user.is_superuser
         ):
             response = super().put(request, *args, **kwargs)
