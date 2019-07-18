@@ -114,8 +114,10 @@ class Room(models.Model):
 
 
 class Reservation(models.Model):
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reservations')
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="reservations")
+    room = models.ForeignKey(
+        Room, on_delete=models.CASCADE, related_name="reservations"
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     price = models.PositiveIntegerField(default=0)
@@ -126,16 +128,21 @@ class Reservation(models.Model):
         Q_start_date = Q(start_date__lt=self.end_date)
         Q_end_date = Q(end_date__gt=self.start_date)
 
-        if (self.room.reservations.filter(~Q_start_date & ~Q_end_date).exists()):
+        if self.room.reservations.filter(~Q_start_date & ~Q_end_date).exists():
             return False
         return True
 
 
 class RoomReview(models.Model):
     """장소에 대한 유저의 리뷰"""
-    writer = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, related_name='reviews')
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reviews')
-    booking = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='reviews')
+
+    writer = models.ForeignKey(
+        get_user_model(), on_delete=models.DO_NOTHING, related_name="reviews"
+    )
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="reviews")
+    booking = models.ForeignKey(
+        Reservation, on_delete=models.CASCADE, related_name="reviews"
+    )
     text = models.TextField(blank=True)
 
     active = models.BooleanField(default=True)
@@ -146,5 +153,5 @@ class RoomReview(models.Model):
 
     def save(self, *args, **kwargs):
         self.total_rating = round(((self.rating_1 + self.rating_2) / 2), 2)
+        # self.room.room_rating()
         super(RoomReview, self).save()
-        self.room.room_rating()

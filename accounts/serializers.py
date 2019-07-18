@@ -9,6 +9,7 @@ from django.db.models.signals import post_save
 from rest_framework.authtoken.models import Token
 from config.utils import response_error_handler
 
+
 @receiver(post_save, sender=get_user_model())
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
@@ -38,7 +39,15 @@ class UserDetailSerializer(serializers.ModelSerializer):
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ["id", "username", "first_name", "last_name", "password", "image", "description"]
+        fields = [
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "password",
+            "image",
+            "description",
+        ]
 
     def create(self, validated_data):
         instance = self.Meta.model.objects.create_user(**validated_data)
@@ -76,6 +85,7 @@ class StaffSerializer(serializers.ModelSerializer):
             "description",
             "is_staff",
         ]
+
     def create(self, validated_data):
         key_a = "FBI_I"
         key_b = "FBI_F"
@@ -90,8 +100,8 @@ class StaffSerializer(serializers.ModelSerializer):
         validated_data["is_staff"] = True
         return self.Meta.model.objects.create_user(**validated_data)
 
-class AdminSerializer(StaffSerializer):
 
+class AdminSerializer(StaffSerializer):
     def create(self, validated_data):
         if "FBI_B" not in validated_data["username"]:
             raise PermissionError("not registered email", "never do it")

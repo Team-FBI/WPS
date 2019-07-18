@@ -116,7 +116,10 @@ class RoomCreateView(generics.CreateAPIView):
         if condition:
             return super().post(request, *args, **kwargs)
         else:
-            raise PermissionError("Post Data User not match to Your Account", "Input right id of your userdata")
+            raise PermissionError(
+                "Post Data User not match to Your Account",
+                "Input right id of your userdata",
+            )
 
 
 class RoomUpdateView(generics.UpdateAPIView):
@@ -216,7 +219,7 @@ class RoomDetailView(generics.RetrieveAPIView):
 #         return super().post(request, *args, **kwargs)
 
 
-class ReservationCreateAPI(generics.CreateAPIView):
+class ReservationCreateView(generics.CreateAPIView):
     """A function, able to POST Reservation create request.
     
     Arguments:
@@ -229,6 +232,7 @@ class ReservationCreateAPI(generics.CreateAPIView):
     Returns:
         [status] -- [POST-HTTP_201_CREATED]
     """
+
     serializer_class = ReservationCreateSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -241,6 +245,7 @@ class ReservationCreateAPI(generics.CreateAPIView):
             .filter(end_date_q | start_date_q)
             .exists()
         )
+
     @response_error_handler
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data["start_date"], request.data["end_date"]

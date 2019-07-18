@@ -32,6 +32,7 @@ class UserListView(viewsets.generics.ListCreateAPIView):
         [GET-status] -- [GET-201-HTTP_201_CREATED]
         [POST-status] -- [GET-200-HTTP_200_OK]
     """
+
     queryset = get_user_model().objects.filter(is_staff=False)
     permission_classes = (AllowAny,)
 
@@ -85,10 +86,11 @@ class UserDetailView(viewsets.generics.RetrieveUpdateAPIView):
             return response
         else:
             raise PermissionError("you are not user or staff", "do not do that")
+
     @response_error_handler
     def get(self, request, *args, **kwargs):
         try:
-            return super().get(request, *args,**kwargs)
+            return super().get(request, *args, **kwargs)
         except Exception:
             raise ValueError("User id Not found", "check user id")
 
@@ -134,7 +136,6 @@ class AdminListCreateView(viewsets.generics.ListCreateAPIView):
         return serializer_class
 
 
-
 class StaffListCreateView(viewsets.generics.ListCreateAPIView):
     """A function, able to create and list staff user list
     
@@ -152,11 +153,10 @@ class StaffListCreateView(viewsets.generics.ListCreateAPIView):
     """
 
     queryset = get_user_model().objects.filter(is_staff=True, is_superuser=False)
-    permission_classes = (AllowAny, )
+    permission_classes = (AllowAny,)
 
     @response_error_handler
     def get(self, request, *args, **kwargs):
-        # print(request.user)
         staffs = [_ for _ in self.get_queryset()]
         if request.user in staffs:
             return super().get(request, *args, **kwargs)

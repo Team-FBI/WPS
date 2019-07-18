@@ -5,7 +5,7 @@ from rest_framework.decorators import (
     permission_classes,
     renderer_classes,
     schema,
-    action
+    action,
 )
 from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
 from rest_framework import permissions
@@ -18,10 +18,12 @@ from django.contrib.auth import get_user_model
 import json
 import logging
 from config.utils import response_error_handler
+
+
 @permission_classes([permissions.AllowAny])
 @api_view(["GET", "POST"])
 @response_error_handler
-def get_user_view(request:Request) -> Response:
+def get_user_view(request: Request) -> Response:
     """[summary]
 
     Arguments:
@@ -39,11 +41,11 @@ def get_user_view(request:Request) -> Response:
     Returns:
         Response -- [description]
     """
-    serializer:Serializer
+    serializer: Serializer
     if request.method == "GET":
         queryset = get_user_model().objects.all()
-        serializer =UserDetailSerializer(queryset, many=True)
-        raise PermissionError("error", "try Get or post") 
+        serializer = UserDetailSerializer(queryset, many=True)
+        raise PermissionError("error", "try Get or post")
         return Response(serializer.data)
     if request.method == "POST":
         serializer = UserCreateSerializer(data=request.data, status=status.HTTP_200_OK)
@@ -52,7 +54,9 @@ def get_user_view(request:Request) -> Response:
             return Response(serializer.data, status=status.HTTP_201_CREATED)
     raise ConnectionRefusedError()
     # return Response("not allowed method", status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
 # @permission_classes([permissions.AllowAny])
 # @api_view(["POST"])
 # def post_user_view(req:request.Request) -> response.Response:
-    # 
+#
