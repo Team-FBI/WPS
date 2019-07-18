@@ -11,5 +11,5 @@ urlpatterns = [
     path("user/<int:pk>/", views.UserDetailView.as_view()),
     path("staff/", views.StaffListCreateView.as_view()),
     path("admin/", views.AdminListCreateView.as_view()),
-    path("get_token/", auth_views.obtain_auth_token),
+    path("get_token/", views.CustomObtainAuthToken.as_view())
 ]

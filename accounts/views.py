@@ -19,6 +19,8 @@ from accounts.serializers import (
 )
 from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 
 
 class UserListView(viewsets.generics.ListCreateAPIView):
@@ -78,7 +80,7 @@ class UserDetailView(viewsets.generics.RetrieveUpdateAPIView):
     def put(self, request, *args, **kwargs):
         if (
             request.user == self.get_queryset()[0]
-            or request.user.is_staff
+            or request.user.is_stafrest_framework.authtokenf
             or request.user.is_superuser
         ):
             response = super().put(request, *args, **kwargs)
@@ -177,3 +179,12 @@ class StaffListCreateView(viewsets.generics.ListCreateAPIView):
         if self.request.method == "POST":
             serializer_class = StaffSerializer
         return serializer_class
+
+class CustomObtainAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, 'user': token.user.id})
