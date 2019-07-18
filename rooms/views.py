@@ -130,6 +130,7 @@ class RoomUpdateView(generics.UpdateAPIView):
     Raises:
         PermissionError: [PUT_HTTP_401_UNAUTHORIZED]
         ValidationError: [PUT_HTTP_400_BAD_REQUEST]
+        ValueError: [PUT_HTTP_404_NOT_FOUND]
     Returns:
         [status] -- [PUT-HTTP_204_NO_CONTENT]
     """
@@ -138,8 +139,10 @@ class RoomUpdateView(generics.UpdateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        pk = self.kwargs["pk"]
+        pk = self.kwargs.get("pk", None)
         queryset = Room.objects.filter(id=pk)
+        if not (queryset[0] and pk):
+            raise ValueError("Room id Not Found", "check room id")
         return queryset
 
     @response_error_handler
@@ -168,15 +171,15 @@ class RoomDetailView(generics.RetrieveAPIView):
 
     - PUT(update)
     A function, able to put new data to update room
-    
     Arguments:
         viewsets {[UpdateAPIView]} -- [PUT handler]
     Raises:
         PermissionError: [PUT_HTTP_401_UNAUTHORIZED]
         ValidationError: [PUT_HTTP_400_BAD_REQUEST]
+        ValueError: [PUT_HTTP_404_NOT_FOUND]
     Returns:
         [status] -- [PUT-HTTP_204_NO_CONTENT]
-    
+
     - POST Reservation for detailed room
     "room_detail_get_url + /reservation/"
     A function, able to POST Reservation create request.
@@ -185,9 +188,9 @@ class RoomDetailView(generics.RetrieveAPIView):
         generics {[CreateAPIView]} -- [POST handler]
     
     Raises:
-        ValueError: [POST-HTTP_400_BAD_REQUEST]
+        ValueError: [POST-HTTP_404_NOT_FOUND]
         ValidationError: [POST-HTTP_400_BAD_REQUEST]
-    
+
     Returns:
         [status] -- [POST-HTTP_201_CREATED]
     """
@@ -196,27 +199,19 @@ class RoomDetailView(generics.RetrieveAPIView):
     permission_classes = (AllowAny,)
 
     def get_queryset(self):
-        room_id = self.kwargs["pk"]
+        room_id = self.kwargs.get("pk", None)
         queryset = Room.objects.filter(id=room_id)
-        print(queryset)
+        print(queryset[0])
+        if not (queryset[0] and room_id):
+            raise ValueError("Room id Not Found", "check room id")
         return queryset
 
     @response_error_handler
     def get(self, request, *args, **kwargs):
         try:
             return super().get(request, *args, **kwargs)
-        except Exception:
-            raise ValueError("Room id Not found", "check room id")
-
-
-# class BookingCreateAPI(generics.CreateAPIView):
-#     serializer_class = BookingCreateSerializer
-#     permission_classes = (IsAuthenticated,)
-#
-#     # @response_error_handler
-#     def post(self, request, *args, **kwargs):
-#         request.room_id = int(self.kwargs.get('pk'))
-#         return super().post(request, *args, **kwargs)
+        except ValueError as e:
+            raise e
 
 
 class ReservationCreateView(generics.CreateAPIView):
@@ -226,7 +221,7 @@ class ReservationCreateView(generics.CreateAPIView):
         generics {[CreateAPIView]} -- [POST handler]
     
     Raises:
-        ValueError: [POST-HTTP_400_BAD_REQUEST]
+        ValueError: [POST-HTTP_404_NOT_FOUND]
         ValidationError: [POST-HTTP_400_BAD_REQUEST]
     
     Returns:
