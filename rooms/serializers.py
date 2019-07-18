@@ -72,9 +72,11 @@ class RoomCreateSerializer(serializers.ModelSerializer):
             "id",
             "created_at",
             "updated_at",
-            "host",
         ]
-
+    def create(self, validated_data):
+        title = validated_data.get("title")
+        validated_data.update({"slug":slugify(title)})
+        return super().create(validated_data)
 
 class RoomDetailSerializer(serializers.ModelSerializer):
     capacity = serializers.ChoiceField(

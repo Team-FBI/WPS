@@ -1,16 +1,13 @@
 from django.db.models import Q
 from rest_framework.viewsets import generics
 from rest_framework.response import Response
-from rest_framework.permissions import (
-    AllowAny,
-    IsAuthenticated,
-)
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Room, Reservation
 from rooms.serializers import (
     RoomListSerializer,
     RoomCreateSerializer,
     RoomDetailSerializer,
-    ReservationCreateSerializer
+    ReservationCreateSerializer,
 )
 from config.utils import response_error_handler
 
@@ -34,7 +31,7 @@ def filter_backend(queryset, query_params):
             queryset = queryset.filter(capacity__gte=capacity)
     except Exception:
         raise AttributeError("filter attribute error", "querystrng wasnt good")
-    paged = queryset[(perpage * page - perpage): (perpage * page)]
+    paged = queryset[(perpage * page - perpage) : (perpage * page)]
     if len(paged):
         return paged
     return queryset
@@ -42,7 +39,7 @@ def filter_backend(queryset, query_params):
 
 class RoomListView(generics.ListAPIView):
     """A function, able to get list of Room
-    - GET
+    - GET[list]
     Arguments:
         viewsets {[ListAPIView]} -- [GET handler]
     QuerystringOptions:
@@ -70,6 +67,7 @@ class RoomListView(generics.ListAPIView):
     
     Raises:
         ValidationError: [POST-HTTP_400_BAD_REQUEST]
+        PermissionError: [POST-HTTP_401_UNAUTHORIZED]
     Returns:
         [status] -- [POST-201_CREATED]
     
@@ -106,6 +104,7 @@ class RoomCreateView(generics.CreateAPIView):
     
     Raises:
         ValidationError: [POST-HTTP_400_BAD_REQUEST]
+        PermissionError: [POST-HTTP_401_UNAUTHORIZED]
     Returns:
         [status] -- [POST-201_CREATED]
     """
@@ -115,8 +114,11 @@ class RoomCreateView(generics.CreateAPIView):
 
     @response_error_handler
     def post(self, request, *args, **kwargs):
-        request.POST["host"] = request.user
-        return super().post(request, *args, **kwargs)
+        condition = int(request.data.get("host", 0)) is request.user.id
+        if condition:
+            return super().post(request, *args, **kwargs)
+        else:
+            raise PermissionError("Post Data User not match to Your Account", "Input right id of your userdata")
 
 
 class RoomUpdateView(generics.UpdateAPIView):
@@ -142,9 +144,9 @@ class RoomUpdateView(generics.UpdateAPIView):
     @response_error_handler
     def put(self, request, *args, **kwargs):
         if (
-                request.user == self.get_queryset()[0].host
-                or request.user.is_staff
-                or request.user.is_superuser
+            request.user == self.get_queryset()[0].host
+            or request.user.is_staff
+            or request.user.is_superuser
         ):
             response = super().put(request, *args, **kwargs)
             response.status_code = 204
@@ -175,6 +177,7 @@ class RoomDetailView(generics.RetrieveAPIView):
         [status] -- [PUT-HTTP_204_NO_CONTENT]
     
     """
+
     serializer_class = RoomDetailSerializer
     permission_classes = (AllowAny,)
 
@@ -201,21 +204,26 @@ class RoomDetailView(generics.RetrieveAPIView):
 #         request.room_id = int(self.kwargs.get('pk'))
 #         return super().post(request, *args, **kwargs)
 
+
 class ReservationCreateAPI(generics.CreateAPIView):
     serializer_class = ReservationCreateSerializer
     permission_classes = (IsAuthenticated,)
 
     def is_reserved_date(self, start_date, end_date):
-        room_id = self.kwargs.get('pk')
+        room_id = self.kwargs.get("pk")
         start_date_q = Q(start_date__lte=start_date, end_date__gte=start_date)
         end_date_q = Q(start_date__lte=end_date, end_date__gte=end_date)
-        return Reservation.objects.filter(room_id=room_id).filter(end_date_q | start_date_q).exists()
+        return (
+            Reservation.objects.filter(room_id=room_id)
+            .filter(end_date_q | start_date_q)
+            .exists()
+        )
 
     def post(self, request, *args, **kwargs):
-        start_date, end_date = request.data['start_date'], request.data['end_date']
+        start_date, end_date = request.data["start_date"], request.data["end_date"]
         if self.is_reserved_date(start_date, end_date):
-            return Response({'error': 'The date is already checked in'})
+            return Response({"error": "The date is already checked in"})
 
-        request.room_id = int(self.kwargs.get('pk'))
+        request.room_id = int(self.kwargs.get("pk"))
 
         return super().post(request, *args, **kwargs)

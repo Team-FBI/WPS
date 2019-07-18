@@ -106,10 +106,6 @@ class Room(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self):
-        self.slug = slugify(self.title, allow_unicode=True)
-        super(Room, self).save()
-
     class Meta:
         ordering = ["-created_at", "-updated_at"]
 
