@@ -76,3 +76,43 @@ class ReservationCreateSerializer(serializers.ModelSerializer):
         room_id = self.context.get("view").request.room_id
         reservation = Room.Reservation.objects.create(**validated_data, room_id=room_id)
         return reservation
+
+
+
+##### 토요일 추가
+from .models import RoomReview
+from django.db.models import Avg
+
+class RoomReviewListSerializer(serializers.ModelSerializer):
+    score_avg = RoomReview.objects.aggregate(Avg('accuracy_score'), Avg('location_score'), Avg('communication_score'),
+                                             Avg('checkin_score'), Avg('clean_score'), Avg('value_score'),
+                                             Avg('total_score'))
+    accuracy_avg = serializers.FloatField(data=round(score_avg("accuracy_score__avg"), 2))
+    location_avg = serializers.FloatField(data=round(score_avg("location_score__avg"), 2))
+    communication_avg = serializers.FloatField(data=round(score_avg("communication_score__avg"), 2))
+    checkin_avg = serializers.FloatField(data=round(score_avg("checkin_score__avg"), 2))
+    clean_avg = serializers.FloatField(data=round(score_avg("clean_score__avg"), 2))
+    value_avg = serializers.FloatField(data=round(score_avg("value_score__avg"), 2))
+    total_avg = serializers.FloatField(data=round(score_avg("total_score__avg"), 2))
+
+    class Meta:
+        model = RoomReview
+        fields = [
+            "user", "description", "created_at", "accuracy_avg", "location_avg", "communication_avg",
+            "checkin_avg", "clean_avg", "value_avg", "total_avg"
+        ]
+
+
+class RoomReviewCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoomReview
+        fields = ['description', 'accuracy_score', 'location_score', 'communication_score', 'checkin_score',
+                  'clean_score', 'value_score']
+
+
+class RoomReviewDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoomReview
+        fields = ['user', "created_at", 'description', 'accuracy_score', 'location_score',
+                  'communication_score', 'checkin_score', 'clean_score', 'value_score'
+                  ]

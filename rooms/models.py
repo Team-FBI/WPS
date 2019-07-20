@@ -95,13 +95,6 @@ class Room(models.Model):
     min_stay = models.SmallIntegerField(choices=MIN_STAY, default=1)
     max_stay = models.SmallIntegerField(choices=MAX_STAY, default=0)
     description = models.TextField(blank=True, null=True)
-    accuracy_rating = models.FloatField(default=0)
-    location_rating = models.FloatField(default=0)
-    communication_rating = models.FloatField(default=0)
-    checkin_rating = models.FloatField(default=0)
-    clean_rating = models.FloatField(default=0)
-    value_rating = models.FloatField(default=0)
-    total_rating = models.FloatField(default=0)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -134,24 +127,38 @@ class Reservation(models.Model):
 
 
 class RoomReview(models.Model):
-    """장소에 대한 유저의 리뷰"""
-
-    writer = models.ForeignKey(
-        get_user_model(), on_delete=models.DO_NOTHING, related_name="reviews"
-    )
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="reviews")
-    booking = models.ForeignKey(
-        Reservation, on_delete=models.CASCADE, related_name="reviews"
-    )
-    text = models.TextField(blank=True)
-
+    user = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, related_name="reviews")
+    room_for = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reviews')
+    reservation_for = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='reviews')
+    description = models.TextField(blank=True)
+    create_at = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
+    accuracy_score = models.FloatField(default=0)
+    location_score = models.FloatField(default=0)
+    communication_score = models.FloatField(default=0)
+    checkin_score = models.FloatField(default=0)
+    clean_score = models.FloatField(default=0)
+    value_score = models.FloatField(default=0)
+    total_score = models.FloatField(default=0)
 
-    rating_1 = models.SmallIntegerField()
-    rating_2 = models.SmallIntegerField()
-    total_rating = models.SmallIntegerField(blank=True)
+    def save(self):
+        rating_sum = (
+                self.accuracy_score + self.location_score + self.communication_score + self.checkin_score
+                + self.clean_score + self.value_score
+        )
+        total_score = rating_sum / 6
+        self.total_score = round(total_score, 2)
+        return super(RoomReview, self).save()
 
-    def save(self, *args, **kwargs):
-        self.total_rating = round(((self.rating_1 + self.rating_2) / 2), 2)
-        # self.room.room_rating()
-        super(RoomReview, self).save()
+
+class Amenity(models.Model):
+    "편의시설"
+
+    name = models.CharField(max_length=250)
+
+
+class PlaceAmenity(models.Model):
+    "장소에 관한 편의 시설"
+
+    amenity = models.ForeignKey(Amenity, on_delete=models.CASCADE, related_name='place_amenity')
+    place = models.ForeignKey(Amenity, on_delete=models.CASCADE, related_name='place_amenity')
