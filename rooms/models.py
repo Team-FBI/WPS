@@ -121,7 +121,7 @@ class Room(models.Model):
 
     def score_avg(self):
         extra_context = {}
-        reviews = Review.objects.filter(room_for=self.id)
+        reviews = Review.objects.filter(room=self.id)
         score_avg = reviews.aggregate(Avg('accuracy_score'),
                                           Avg('location_score'),
                                           Avg('communication_score'),
