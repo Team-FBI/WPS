@@ -12,7 +12,7 @@ class RoomListSerializer(serializers.ModelSerializer):
     )
     host = serializers.SerializerMethodField()
     bath_type = serializers.ChoiceField(
-        source="get_beth_type_display", choices=Rooms.BATHROOM_TYPES
+        source="get_beth_type_display", choices=Room.BATHROOM_TYPES
     )
 
     class Meta:
