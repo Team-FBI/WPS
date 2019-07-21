@@ -66,10 +66,10 @@ class UserDetailView(viewsets.generics.RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
+        serializer_class = UserDetailSerializer
         if self.request.method == "POST":
-            return UserCreateSerializer
-        else:
-            return UserDetailSerializer
+            serializer_class = UserCreateSerializer
+        return serializer_class
 
     def get_queryset(self):
         pk = self.kwargs["pk"]
@@ -78,23 +78,23 @@ class UserDetailView(viewsets.generics.RetrieveUpdateAPIView):
 
     @response_error_handler
     def put(self, request, *args, **kwargs):
-        if (
-            request.user == self.get_queryset()[0]
-            or request.user.is_staff
-            or request.user.is_superuser
-        ):
-            response = super().put(request, *args, **kwargs)
-            response.status_code = 204
-            return response
-        else:
-            raise PermissionError("you are not user or staff", "do not do that")
-
+        self.validate(request)
+        response = super().put(request, *args, **kwargs)
+        response.status_code = 204
+        return response
+    
     @response_error_handler
     def get(self, request, *args, **kwargs):
-        try:
-            return super().get(request, *args, **kwargs)
-        except Exception:
-            raise ValueError("User id Not found", "check user id")
+        self.validate(request)
+        return super().get(request, *args, **kwargs)
+
+    def validate(self, request):
+        condition_1 = request.user == self.get_queryset()[0]
+        condition_2 = request.user.is_staff or request.user.is_superuser
+        if condition_1 or condition_2:
+            return True
+        else:
+            raise PermissionError("you are not user or staff", "do not do that")
 
 
 class AdminListCreateView(viewsets.generics.ListCreateAPIView):
