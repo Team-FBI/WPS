@@ -23,6 +23,8 @@ class UserListSerializer(serializers.ModelSerializer):
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
+    reservations = serializers.SerializerMethodField()
+
     class Meta:
         model = get_user_model()
         fields = [
@@ -33,6 +35,20 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "image",
             "description",
             "rooms",
+            "reservations",
+        ]
+
+    def get_reservations(self, obj):
+        reservations = obj.reservations.all()
+        return [
+            {
+                f"{r.room.state.name}-{r.room.id}": {
+                    "start_date": r.start_date,
+                    "end_date": r.end_date,
+                    "room": r.room.id,
+                }
+            }
+            for r in reservations
         ]
 
 

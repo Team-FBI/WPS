@@ -73,6 +73,13 @@ REVIEW_STATUS = [
 ]
 
 
+class Facility(models.Model):
+    name = models.CharField(max_length=250)
+
+    def __str__(self):
+        return self.name
+
+
 class Room(models.Model):
     host = models.ForeignKey(
         get_user_model(), on_delete=models.CASCADE, related_name="rooms"
@@ -81,9 +88,13 @@ class Room(models.Model):
     slug = models.SlugField(blank=True, null=True)
     address = models.CharField(max_length=250, blank=True)
     state = models.ForeignKey(State, on_delete=models.DO_NOTHING, related_name="rooms")
-    postal_code = models.CharField(max_length=15, blank=True, null=True)
-    mobile = models.IntegerField(blank=False, null=False)
-    image = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
+    postal_code = models.CharField(max_length=15, blank=False, null=True)
+    mobile = models.CharField(max_length=30, blank=False, null=False)
+    image = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=False, null=True)
+    image_1 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
+    image_2 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
+    image_3 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
+    image_4 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
     price = models.PositiveIntegerField(blank=True, null=True)
     capacity = models.SmallIntegerField(choices=NO_OF_BEDS, default=6)
     room_type = models.SmallIntegerField(choices=ROOM_TYPES, default=1)
@@ -98,24 +109,25 @@ class Room(models.Model):
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    total_rating = models.FloatField(default=0)
+    facilities = models.ManyToManyField(Facility, related_name="rooms")
 
     class Meta:
         ordering = ["-created_at", "-updated_at"]
 
     def __str__(self):
-        return f"{self.slug} / {self.host}"
+        return f"{self.state.name} / {self.slug} / {self.host}"
 
 
 class Reservation(models.Model):
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="reservations")
+    user = models.ForeignKey(
+        get_user_model(), on_delete=models.CASCADE, related_name="reservations"
+    )
     room = models.ForeignKey(
         Room, on_delete=models.CASCADE, related_name="reservations"
     )
     start_date = models.DateField()
     end_date = models.DateField()
-    price = models.PositiveIntegerField(default=0)
-    number_guest = models.PositiveIntegerField(default=0)
-    is_payed = models.BooleanField(default=False)
 
     def is_valid_date(self):
         Q_start_date = Q(start_date__lt=self.end_date)
@@ -126,10 +138,11 @@ class Reservation(models.Model):
         return True
 
 
-class RoomReview(models.Model):
-    user = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, related_name="reviews")
-    room_for = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='reviews')
-    reservation_for = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='reviews')
+class Review(models.Model):
+    user = models.ForeignKey(
+        get_user_model(), on_delete=models.DO_NOTHING, related_name="reviews"
+    )
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="reviews")
     description = models.TextField(blank=True)
     create_at = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
@@ -143,22 +156,13 @@ class RoomReview(models.Model):
 
     def save(self):
         rating_sum = (
-                self.accuracy_score + self.location_score + self.communication_score + self.checkin_score
-                + self.clean_score + self.value_score
+            self.accuracy_score
+            + self.location_score
+            + self.communication_score
+            + self.checkin_score
+            + self.clean_score
+            + self.value_score
         )
         total_score = rating_sum / 6
         self.total_score = round(total_score, 2)
-        return super(RoomReview, self).save()
-
-
-class Amenity(models.Model):
-    "편의시설"
-
-    name = models.CharField(max_length=250)
-
-
-class PlaceAmenity(models.Model):
-    "장소에 관한 편의 시설"
-
-    amenity = models.ForeignKey(Amenity, on_delete=models.CASCADE, related_name='place_amenity')
-    place = models.ForeignKey(Amenity, on_delete=models.CASCADE, related_name='place_amenity')
+        return super(Review, self).save()
