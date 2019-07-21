@@ -224,11 +224,11 @@ class ReservationCreateView(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def is_reserved_date(self, start_date, end_date):
-        room_id = self.kwargs.get("pk")
+        room_id = int(self.kwargs.get("pk"))
         start_date_q = Q(start_date__lte=start_date, end_date__gte=start_date)
         end_date_q = Q(start_date__lte=end_date, end_date__gte=end_date)
         return (
-            Reservation.objects.filter(room_id=room_id)
+            Reservation.objects.filter(room=room_id)
             .filter(end_date_q | start_date_q)
             .exists()
         )
@@ -238,49 +238,48 @@ class ReservationCreateView(generics.CreateAPIView):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
         if self.is_reserved_date(start_date, end_date):
             raise ValueError("Date already reservated!", "check for another date.")
-        request.room_id = int(self.kwargs.get("pk"))
         return super().post(request, *args, **kwargs)
 
 
 ######## 토요일 추가
-from .serializers import *
-from rest_framework import status
+# from .serializers import *
+# from rest_framework import status
 
 
-class CreateRoomReview(generics.CreateAPIView):
+# class CreateRoomReview(generics.CreateAPIView):
 
-    serializer_class = RoomReviewCreateSerializer
+#     serializer_class = RoomReviewCreateSerializer
 
-    def create(self, request, *args, **kwargs):
-        user = self.request.use
-        reservation_id = self.kwargs.get("pk")
-        reservation = Reservation.objects.get(pk=reservation_id)
-        room = reservation.room_for
-        if not RoomReview.objects.filter(reservation_for=reservation).exists():
-            serializer = RoomReviewCreateSerializer(
-                data=request.data,
-                user=user,
-                place_for=room,
-                reservation_for=reservation,
-            )
-            if serializer.is_valid():
-                self.perform_create(serializer)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({"error": "이미 후기를 작성하였습니다."})
-
-
-class RoomReviewListView(generics.ListAPIView):
-
-    queryset = RoomReview.objects.filter(active=True)
-    serializer_class = RoomReviewListSerializer
+#     def create(self, request, *args, **kwargs):
+#         user = self.request.use
+#         reservation_id = self.kwargs.get("pk")
+#         reservation = Reservation.objects.get(pk=reservation_id)
+#         room = reservation.room_for
+#         if not RoomReview.objects.filter(reservation_for=reservation).exists():
+#             serializer = RoomReviewCreateSerializer(
+#                 data=request.data,
+#                 user=user,
+#                 place_for=room,
+#                 reservation_for=reservation,
+#             )
+#             if serializer.is_valid():
+#                 self.perform_create(serializer)
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#         else:
+#             return Response({"error": "이미 후기를 작성하였습니다."})
 
 
-class RoomReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Retrieve, Update, and Delete comment endpoint
-    Allowed request method: Get, Post, Delete
-    """
+# class RoomReviewListView(generics.ListAPIView):
 
-    queryset = RoomReview.objects.all()
-    serializer_class = RoomReviewDetailSerializer
+#     queryset = RoomReview.objects.filter(active=True)
+#     serializer_class = RoomReviewListSerializer
+
+
+# class RoomReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     """
+#     Retrieve, Update, and Delete comment endpoint
+#     Allowed request method: Get, Post, Delete
+#     """
+
+#     queryset = RoomReview.objects.all()
+#     serializer_class = RoomReviewDetailSerializer

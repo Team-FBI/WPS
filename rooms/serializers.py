@@ -45,7 +45,7 @@ class RoomCreateSerializer(serializers.ModelSerializer):
         choices=Room.SPACE_TYPES, help_text=f"{Room.SPACE_TYPES}"
     )
     bedroom = serializers.ChoiceField(choices=Room.NO_OF_ROOMS)
-    bed_type = serializers.ChoiceField(
+    bath_type = serializers.ChoiceField(
         choices=Room.BATHROOM_TYPES, help_text=f"{Room.BATHROOM_TYPES}"
     )
     bathroom = serializers.ChoiceField(choices=Room.NO_OF_ROOMS)
@@ -74,7 +74,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         choices=Room.SPACE_TYPES, help_text=f"{Room.SPACE_TYPES}"
     )
     bedroom = serializers.ChoiceField(choices=Room.NO_OF_ROOMS)
-    bed_type = serializers.ChoiceField(
+    bath_type = serializers.ChoiceField(
         choices=Room.BATHROOM_TYPES, help_text=f"{Room.BATHROOM_TYPES}"
     )
     bathroom = serializers.ChoiceField(choices=Room.NO_OF_ROOMS)
@@ -106,7 +106,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "space",
             "room_type",
             "bedroom",
-            "bed_type",
+            "bath_type",
             "bathroom",
             "cancellation",
             "min_stay",

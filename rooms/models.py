@@ -100,7 +100,7 @@ class Room(models.Model):
     room_type = models.SmallIntegerField(choices=ROOM_TYPES, default=1)
     space = models.SmallIntegerField(choices=SPACE_TYPES, default=1)
     bedroom = models.SmallIntegerField(choices=NO_OF_ROOMS, default=1)
-    bed_type = models.SmallIntegerField(choices=BATHROOM_TYPES, default=1)
+    bath_type = models.SmallIntegerField(choices=BATHROOM_TYPES, default=1)
     bathroom = models.SmallIntegerField(choices=NO_OF_ROOMS, default=1)
     cancellation = models.SmallIntegerField(choices=CANCELATION_RULES, default=1)
     min_stay = models.SmallIntegerField(choices=MIN_STAY, default=1)

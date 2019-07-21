@@ -14,7 +14,7 @@ class Country(models.Model):
 class State(models.Model):
     name = models.CharField(max_length=30)
     country = models.ForeignKey(
-        Country, related_name="cities", on_delete=models.DO_NOTHING
+        Country, related_name="states", on_delete=models.DO_NOTHING
     )
 
     def __str__(self):

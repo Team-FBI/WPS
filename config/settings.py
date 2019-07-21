@@ -150,7 +150,6 @@ DEFAULT_FILE_STORAGE = 'config.storage_backends.MediaStorage'
 # all-auth
 AUTHENTICATION_BACKENDS = [
     "accounts.backends.UserBackend",
-    # "django.contrib.auth.backends.ModelBackend",
 ]
 
 # custom user model
@@ -162,7 +161,6 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
-        # "rest_framework.authentication.SessionAuthentication"
     ],
 }
 # swagger
