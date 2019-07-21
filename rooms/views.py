@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import exceptions
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from rooms.models import Room, Reservation
 from rooms.serializers import (
     RoomListSerializer,
