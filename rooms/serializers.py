@@ -85,6 +85,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     max_stay = serializers.ChoiceField(choices=Room.MAX_STAY)
     facilities = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
+    score_avg = serializers.ReadOnlyField()
 
     class Meta:
         model = Room.Room

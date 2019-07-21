@@ -12,6 +12,8 @@ from rooms.serializers import (
     ReservationCreateSerializer,
 )
 from config.utils import response_error_handler
+from rest_framework import filters
+from rest_framework.pagination import PageNumberPagination
 
 class PriceFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):

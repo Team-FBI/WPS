@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "rooms.apps.RoomsConfig",
     "locations.apps.LocationsConfig",
     "rest_framework.authtoken",
+
 ]
 
 MIDDLEWARE = [

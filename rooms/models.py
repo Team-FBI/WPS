@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from locations.models import State
+from django.db.models import Avg
 
 
 def n_tuple(n, first=[], last=[]):
@@ -118,6 +119,21 @@ class Room(models.Model):
     def __str__(self):
         return f"{self.state.name} / {self.slug} / {self.host}"
 
+    def score_avg(self):
+        extra_context = {}
+        reviews = Review.objects.filter(room_for=self.id)
+        score_avg = reviews.aggregate(Avg('accuracy_score'),
+                                          Avg('location_score'),
+                                          Avg('communication_score'),
+                                          Avg('checkin_score'),
+                                          Avg('clean_score'),
+                                          Avg('value_score'),
+                                          Avg('total_score')
+                                          )
+        for key, val in score_avg.items():
+            extra_context[key] = round(val, 2)
+
+        return extra_context
 
 class Reservation(models.Model):
     user = models.ForeignKey(
@@ -144,7 +160,8 @@ class Review(models.Model):
     )
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="reviews")
     description = models.TextField(blank=True)
-    create_at = models.DateTimeField(auto_now_add=True)
+    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='reviews')
+    created_at = models.DateTimeField(auto_now_add=True)
     active = models.BooleanField(default=True)
     accuracy_score = models.FloatField(default=0)
     location_score = models.FloatField(default=0)
