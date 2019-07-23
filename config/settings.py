@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "rooms.apps.RoomsConfig",
     "locations.apps.LocationsConfig",
     "rest_framework.authtoken",
-
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -53,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -176,5 +177,8 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+# cors setting
+CORS_ORIGIN_ALLOW_ALL = True
 
 SITE_ID = 1

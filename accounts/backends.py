@@ -4,6 +4,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authentication import TokenAuthentication, get_authorization_header
 from rest_framework import exceptions
 from config.utils import response_error_handler
+
+
 class UserBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         user = super().authenticate(request, username, password, **kwargs)
@@ -25,6 +27,7 @@ class UserBackend(ModelBackend):
         token = Token.objects.get(user=user)
         return token
 
+
 class TokenAuthBackend(TokenAuthentication):
     def authenticate(self, request):
         auth = get_authorization_header(request).split()
@@ -33,15 +36,17 @@ class TokenAuthBackend(TokenAuthentication):
             return None
 
         if len(auth) == 1 or not auth[1]:
-            return None # This part changed
+            return None  # This part changed
         elif len(auth) > 2:
-            msg = _('Invalid token header. Token string should not contain spaces.')
+            msg = _("Invalid token header. Token string should not contain spaces.")
             raise exceptions.AuthenticationFailed(msg)
 
         try:
             token = auth[1].decode()
         except UnicodeError:
-            msg = _('Invalid token header. Token string should not contain invalid characters.')
+            msg = _(
+                "Invalid token header. Token string should not contain invalid characters."
+            )
             raise exceptions.AuthenticationFailed(msg)
 
         return self.authenticate_credentials(token)

@@ -3,7 +3,6 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from locations.models import State
-from django.db.models import Avg
 
 
 def n_tuple(n, first=[], last=[]):
@@ -65,14 +64,6 @@ MESSAGE_STATUS = [
     (50, "Archived"),
 ]
 
-REVIEW_STATUS = [
-    (1, "Waiting for confirmation"),
-    (2, "Confirmed, active"),
-    (3, "Deactived by staff"),
-    (4, "Deleted by reviewer"),
-    (5, "Archived"),
-]
-
 
 class Facility(models.Model):
     name = models.CharField(max_length=250)
@@ -88,10 +79,12 @@ class Room(models.Model):
     title = models.CharField(max_length=100)
     slug = models.SlugField(blank=True, null=True)
     address = models.CharField(max_length=250, blank=True)
-    state = models.ForeignKey(State, on_delete=models.DO_NOTHING, related_name="rooms")
-    postal_code = models.CharField(max_length=15, blank=False, null=True)
-    mobile = models.CharField(max_length=30, blank=False, null=False)
-    image = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=False, null=True)
+    state = models.ForeignKey(
+        State, on_delete=models.SET_NULL, related_name="rooms", null=True, blank=False
+    )
+    postal_code = models.CharField(max_length=15, blank=True, null=True)
+    mobile = models.IntegerField(blank=False, null=False)
+    image = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
     image_1 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
     image_2 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
     image_3 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
@@ -107,10 +100,10 @@ class Room(models.Model):
     min_stay = models.SmallIntegerField(choices=MIN_STAY, default=1)
     max_stay = models.SmallIntegerField(choices=MAX_STAY, default=0)
     description = models.TextField(blank=True, null=True)
+    total_rating = models.FloatField(default=0)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    total_rating = models.FloatField(default=0)
     facilities = models.ManyToManyField(Facility, related_name="rooms")
 
     class Meta:
@@ -119,67 +112,3 @@ class Room(models.Model):
     def __str__(self):
         return f"{self.state.name} / {self.slug} / {self.host}"
 
-    def score_avg(self):
-        extra_context = {}
-        reviews = Review.objects.filter(room=self.id)
-        score_avg = reviews.aggregate(Avg('accuracy_score'),
-                                          Avg('location_score'),
-                                          Avg('communication_score'),
-                                          Avg('checkin_score'),
-                                          Avg('clean_score'),
-                                          Avg('value_score'),
-                                          Avg('total_score')
-                                          )
-        for key, val in score_avg.items():
-            extra_context[key] = round(val, 2)
-
-        return extra_context
-
-class Reservation(models.Model):
-    user = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, related_name="reservations"
-    )
-    room = models.ForeignKey(
-        Room, on_delete=models.CASCADE, related_name="reservations"
-    )
-    start_date = models.DateField()
-    end_date = models.DateField()
-
-    def is_valid_date(self):
-        Q_start_date = Q(start_date__lt=self.end_date)
-        Q_end_date = Q(end_date__gt=self.start_date)
-
-        if self.room.reservations.filter(~Q_start_date & ~Q_end_date).exists():
-            return False
-        return True
-
-
-class Review(models.Model):
-    user = models.ForeignKey(
-        get_user_model(), on_delete=models.DO_NOTHING, related_name="reviews"
-    )
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="reviews")
-    description = models.TextField(blank=True)
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name='reviews')
-    created_at = models.DateTimeField(auto_now_add=True)
-    active = models.BooleanField(default=True)
-    accuracy_score = models.FloatField(default=0)
-    location_score = models.FloatField(default=0)
-    communication_score = models.FloatField(default=0)
-    checkin_score = models.FloatField(default=0)
-    clean_score = models.FloatField(default=0)
-    value_score = models.FloatField(default=0)
-    total_score = models.FloatField(default=0)
-
-    def save(self):
-        rating_sum = (
-            self.accuracy_score
-            + self.location_score
-            + self.communication_score
-            + self.checkin_score
-            + self.clean_score
-            + self.value_score
-        )
-        total_score = rating_sum / 6
-        self.total_score = round(total_score, 2)
-        return super(Review, self).save()
