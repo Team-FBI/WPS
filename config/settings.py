@@ -3,7 +3,7 @@ import json
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-secret_file = os.path.join(BASE_DIR, 'secrets.json')
+secret_file = os.path.join(BASE_DIR, "secrets.json")
 
 with open(secret_file) as f:
     secrets = json.loads(f.read())
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "storages",
     "django_extensions",
+    "django_filters",
     "rest_framework",
     "drf_yasg",
     "rooms.apps.RoomsConfig",
@@ -81,13 +82,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME':'fbinb',
-        'USER':'fbinb',
-        'PASSWORD': get_secret("RDS_PASSWORD"),
-        'HOST':'fbinb.cxzf4192gezj.ap-northeast-2.rds.amazonaws.com',
-        'PORT':'5432',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": "fbinb",
+        "USER": "fbinb",
+        "PASSWORD": get_secret("RDS_PASSWORD"),
+        "HOST": "fbinb.cxzf4192gezj.ap-northeast-2.rds.amazonaws.com",
+        "PORT": "5432",
     }
 }
 # DATABASES = {
@@ -132,27 +133,23 @@ USE_TZ = True
 STATIC_URL = "/static/"
 
 AWS_ACCESS_KEY_ID = get_secret("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = get_secret('AWS_SECRET_ACCESS_KEY')
-AWS_REGION = 'ap-northeast-2'
-AWS_STORAGE_BUCKET_NAME = 'static.tthae.com'
+AWS_SECRET_ACCESS_KEY = get_secret("AWS_SECRET_ACCESS_KEY")
+AWS_REGION = "ap-northeast-2"
+AWS_STORAGE_BUCKET_NAME = "static.tthae.com"
 AWS_S3_CUSTOM_DOMAIN = AWS_STORAGE_BUCKET_NAME
 AWS_S3_FILE_OVERWRITE = True
 AWS_S3_SECURE_URLS = False
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
+AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 
-AWS_DEFAULT_ACL = 'public-read'
-AWS_LOCATION = ''
+AWS_DEFAULT_ACL = "public-read"
+AWS_LOCATION = ""
 
-STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
-STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-DEFAULT_FILE_STORAGE = 'config.storage_backends.MediaStorage'
+STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+STATICFILES_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+DEFAULT_FILE_STORAGE = "config.storage_backends.MediaStorage"
 
 # all-auth
-AUTHENTICATION_BACKENDS = [
-    "accounts.backends.UserBackend",
-]
+AUTHENTICATION_BACKENDS = ["accounts.backends.UserBackend"]
 
 # custom user model
 AUTH_USER_MODEL = "accounts.User"
@@ -163,7 +160,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         # "rest_framework.authentication.TokenAuthentication",
-        "acccounts.backends.TokenAuthBackend",
+        "acccounts.backends.TokenAuthBackend"
     ],
 }
 # swagger

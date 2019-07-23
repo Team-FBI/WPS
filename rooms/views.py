@@ -1,30 +1,24 @@
+from datetime import datetime
 from django.db.models import Q
 from rest_framework.viewsets import generics
 from rest_framework.response import Response
-from rest_framework import exceptions
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters
-from rooms.models import Room, Reservation
+from rest_framework import status
+from rooms.models import Room
 from rooms.serializers import (
     RoomListSerializer,
     RoomCreateSerializer,
     RoomDetailSerializer,
-    ReservationCreateSerializer,
 )
+from rooms.filter_backends import (
+    CapacityFilterBackend,
+    DateFilterBackend,
+    PriceFilterBackend,
+)
+from reservations.views import reservation_validation
 from config.utils import response_error_handler
-from rest_framework import filters
-from rest_framework.pagination import PageNumberPagination
-
-class PriceFilterBackend(filters.BaseFilterBackend):
-    def filter_queryset(self, request, queryset, view):
-        min_price = request.query_params.get("min_price", 0)
-        max_price = request.query_params.get("max_price", None)
-        condition_min = Q(price__gte=min_price)
-        if not max_price:
-            return queryset.filter(condition_min)
-        condition_max = Q(price__lte=max_price)
-        return queryset.filter(condition_min & condition_max)
 
 
 class StandardResultSetPagination(PageNumberPagination):
@@ -40,17 +34,18 @@ class RoomListView(generics.ListAPIView):
     Arguments:
         viewsets {[ListAPIView]} -- [GET handler]
     QuerystringOptions:
-    #ordering-required
+        #ordering-required
         ordering -- [default update_at, price, updated_at, created_at, total_rating]
         page_size -- [default 12, data amount in page]
         page -- [default 1, page of data-perpage]
 
-    #filterings-required
+        #filterings-required
         search -- [could come state or country or part of host email]
 
-    #filterings-Non_required
+        #filterings-Non_required
         min_price -- [default All, filter price greater than input]
         max_price -- [default All, filter price lower than input]
+        start_date, end_date -- [default None, filter date reservable, format as year-month-day]
     Raises:
         AttributeError: [GET-HTTP_400_BAD_REQUEST]
     Returns:
@@ -72,14 +67,20 @@ class RoomListView(generics.ListAPIView):
     serializer_class = RoomListSerializer
     pagination_class = StandardResultSetPagination
     queryset = Room.objects.all()
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter, PriceFilterBackend]
+    filter_backends = [
+        filters.SearchFilter,
+        filters.OrderingFilter,
+        PriceFilterBackend,
+        DateFilterBackend,
+        CapacityFilterBackend,
+    ]
+    filterset_fields = ["start_date", "end_date", "min_price", "max_price", "capacity"]
     search_fields = ["=state__name", "=state__country__name", "^host__username"]
     ordering_fields = ["price", "created_at", "updated_at", "total_rating"]
     ordering = ["updated_at"]
 
     @response_error_handler
     def get(self, request, *args, **kwargs):
-        # print(request.query_params)
         query_order = request.query_params.get("ordering")
         query_search = request.query_params.get("search")
         page = request.query_params.get("page")
@@ -108,6 +109,7 @@ class RoomCreateView(generics.CreateAPIView):
 
     serializer_class = RoomCreateSerializer
     permission_classes = (IsAuthenticated,)
+    queryset = Room.objects.all()
 
     @response_error_handler
     def post(self, request, *args, **kwargs):
@@ -140,8 +142,6 @@ class RoomUpdateView(generics.UpdateAPIView):
     def get_queryset(self):
         pk = self.kwargs.get("pk", None)
         queryset = Room.objects.filter(id=pk)
-        if not (queryset[0] and pk):
-            raise ValueError("Room id Not Found", "check room id")
         return queryset
 
     @response_error_handler
@@ -200,89 +200,8 @@ class RoomDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         room_id = self.kwargs.get("pk", None)
         queryset = Room.objects.filter(id=room_id)
-        if not (queryset[0] and room_id):
-            raise ValueError("Room id Not Found", "check room id")
         return queryset
 
     @response_error_handler
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
-
-
-class ReservationCreateView(generics.CreateAPIView):
-    """A function, able to POST Reservation create request.
-    
-    Arguments:
-        generics {[CreateAPIView]} -- [POST handler]
-    
-    Raises:
-        ValueError: [POST-HTTP_404_NOT_FOUND]
-        ValidationError: [POST-HTTP_400_BAD_REQUEST]
-    
-    Returns:
-        [status] -- [POST-HTTP_201_CREATED]
-    """
-
-    serializer_class = ReservationCreateSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def is_reserved_date(self, start_date, end_date):
-        room_id = int(self.kwargs.get("pk"))
-        start_date_q = Q(start_date__lte=start_date, end_date__gte=start_date)
-        end_date_q = Q(start_date__lte=end_date, end_date__gte=end_date)
-        return (
-            Reservation.objects.filter(room=room_id)
-            .filter(end_date_q | start_date_q)
-            .exists()
-        )
-
-    @response_error_handler
-    def post(self, request, *args, **kwargs):
-        start_date, end_date = request.data["start_date"], request.data["end_date"]
-        if self.is_reserved_date(start_date, end_date):
-            raise ValueError("Date already reservated!", "check for another date.")
-        return super().post(request, *args, **kwargs)
-
-
-######## 토요일 추가
-# from .serializers import *
-# from rest_framework import status
-
-
-# class CreateRoomReview(generics.CreateAPIView):
-
-#     serializer_class = RoomReviewCreateSerializer
-
-#     def create(self, request, *args, **kwargs):
-#         user = self.request.use
-#         reservation_id = self.kwargs.get("pk")
-#         reservation = Reservation.objects.get(pk=reservation_id)
-#         room = reservation.room_for
-#         if not RoomReview.objects.filter(reservation_for=reservation).exists():
-#             serializer = RoomReviewCreateSerializer(
-#                 data=request.data,
-#                 user=user,
-#                 place_for=room,
-#                 reservation_for=reservation,
-#             )
-#             if serializer.is_valid():
-#                 self.perform_create(serializer)
-#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         else:
-#             return Response({"error": "이미 후기를 작성하였습니다."})
-
-
-# class RoomReviewListView(generics.ListAPIView):
-
-#     queryset = RoomReview.objects.filter(active=True)
-#     serializer_class = RoomReviewListSerializer
-
-
-# class RoomReviewDetailView(generics.RetrieveUpdateDestroyAPIView):
-#     """
-#     Retrieve, Update, and Delete comment endpoint
-#     Allowed request method: Get, Post, Delete
-#     """
-
-#     queryset = RoomReview.objects.all()
-#     serializer_class = RoomReviewDetailSerializer
