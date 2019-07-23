@@ -85,10 +85,8 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
         return serializer_class
 
     def get_queryset(self):
-        pk = self.kwargs.get("pk")
+        pk = self.kwargs.get("pk", None)
         queryset = RoomReservation.objects.filter(id=pk)
-        if not queryset:
-            raise ValueError("Reservation not exist", "check out your reservation id")
         return queryset
 
     @response_error_handler

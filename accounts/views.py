@@ -72,7 +72,7 @@ class UserDetailView(viewsets.generics.RetrieveUpdateAPIView):
         return serializer_class
 
     def get_queryset(self):
-        pk = self.kwargs["pk"]
+        pk = self.kwargs.get("pk", None)
         queryset = get_user_model().objects.filter(id=pk, is_staff=False)
         return queryset
 
