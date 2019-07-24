@@ -18,6 +18,7 @@ from reservations.serializers import (
 
 
 def reservation_validation(queryset, start_date, end_date):
+    queryset = queryset.filter(Q(is_active=True))
     if start_date and end_date:
         try:
             # date reservatable validation
@@ -56,7 +57,6 @@ def reservation_validation(queryset, start_date, end_date):
                 "your trying to stay is not match to room's condition",
                 "look at stayable days of room.",
                 )
-        print("passed")
     return queryset
 
 
@@ -91,10 +91,7 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
 
     @response_error_handler
     def get(self, request, *args, **kwargs):
-        if (
-            request.user == self.get_queryset()[0].user
-            or request.user == self.get_queryset()[0].room.host
-        ):
+        if (request.user.id in (self.get_queryset()[0].user.id, self.get_queryset()[0].room.host.id)):
             return super().get(request, *args, **kwargs)
         raise PermissionError(
             "only owner of reservation or host of room could do this", "dont do it"
@@ -102,11 +99,11 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
 
     @response_error_handler
     def put(self, request, *args, **kwargs):
-        if not (request.user == self.get_queryset()[0].user):
+        if not (request.user.id == self.get_queryset()[0].user.id):
             raise PermissionError(
                 "only Owner of reservation could do this", "dont do it"
             )
-        if self.get_queryset()[0].start_date >= datetime.now():
+        if self.get_queryset()[0].start_date >= datetime.now().date():
             raise ValueError(
                 "start date not passed", "evaluate your reservation after first-day"
             )

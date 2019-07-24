@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db.models import Q
 from django.utils.text import slugify
 from rooms import models as Room
 
@@ -36,6 +37,7 @@ class RoomListSerializer(serializers.ModelSerializer):
             "bedroom",
             "capacity",
             "bath_type",
+            "address",
         ]
 
 
@@ -112,7 +114,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
 
     def get_reservations(self, obj):
         reservations = obj.reservations.all()
-        return [[v.start_date, v.end_date] for v in reservations]
+        return [[v.start_date, v.end_date] for v in reservations if v.is_active]
 
     def get_host(self, obj):
         return obj.host.username

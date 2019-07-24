@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from rooms.models import Room
+from datetime import datetime
 
 class RoomReservation(models.Model):
     user = models.ForeignKey(
@@ -18,3 +19,5 @@ class RoomReservation(models.Model):
     checkin_score = models.FloatField(default=0)
     clean_score = models.FloatField(default=0)
     value_score = models.FloatField(default=0)
+    is_active = models.BooleanField(default=True)
+

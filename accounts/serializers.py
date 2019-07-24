@@ -42,10 +42,11 @@ class UserDetailSerializer(serializers.ModelSerializer):
         reservations = obj.reservations.all()
         return [
             {
-                f"{r.room.state.name}-{r.room.id}": {
+                f"{r.room.state.name}-{r.id}": {
                     "start_date": r.start_date,
                     "end_date": r.end_date,
                     "room": r.room.id,
+                    "id": r.id,
                 }
             }
             for r in reservations
