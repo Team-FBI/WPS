@@ -46,7 +46,7 @@ def reservation_validation(queryset, start_date, end_date):
         # stayable day validation
         stay = end_time - start_time + timedelta(1)
         min_stay = Q(min_stay__lte=stay.days)
-        max_stay = Q(max_stay__gte=stay.days)
+        max_stay = Q(max_stay="unlimited"|max_stay__gte=stay.days)
         queryset = queryset.filter(min_stay & max_stay)
     return queryset
 

@@ -19,7 +19,6 @@ class RoomListSerializer(serializers.ModelSerializer):
         source="get_room_type_display", choices=Room.ROOM_TYPES
     )
 
-    state = serializers.CharField(source = 'state.name')
 
     def get_host(self, obj):
         return obj.host.username
@@ -43,7 +42,6 @@ class RoomListSerializer(serializers.ModelSerializer):
             "bedroom",
             "capacity",
             "bath_type",
-            "state",
             "address",
         ]
 
