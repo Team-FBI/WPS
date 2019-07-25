@@ -18,47 +18,37 @@ from reservations.serializers import (
 
 
 def reservation_validation(queryset, start_date, end_date):
-    queryset = queryset.filter(Q(is_active=True))
     if start_date and end_date:
         try:
             # date reservatable validation
-            start_time = datetime(
-                *[v for v in map(lambda el: int(el), start_date.split("-"))]
-            )
-            end_time = datetime(
-                *[v for v in map(lambda el: int(el), end_date.split("-"))]
-            )
+            formatter = lambda el: int(el) if el[0] is not "0" else int(el[1:])
+            start_time = datetime(*[v for v in map(formatter, start_date.split("-"))])
+            end_time = datetime(*[v for v in map(formatter, end_date.split("-"))])
+
         except Exception:
             raise ValueError(
                 "date format you passed, is not right format", "type in year-month-day"
             )
         if start_time > end_time:
             raise ValueError(
-                "start day could not be later than end date",
-                "retype form data"
+                "start day could not be later than end date", "retype form data"
             )
         condition_date_1_1 = Q(reservations__start_date__lte=start_time)
         condition_date_1_2 = Q(reservations__end_date__gte=start_time)
         condition_date_2_1 = Q(reservations__start_date__lte=end_time)
         condition_date_2_2 = Q(reservations__end_date__gte=end_time)
-        queryset = queryset.filter(
-            ~(condition_date_1_1 & condition_date_1_2)
-        ).filter(~(condition_date_2_1 & condition_date_2_2))
+        queryset = queryset.filter(~(condition_date_1_1 & condition_date_1_2)).filter(
+            ~(condition_date_2_1 & condition_date_2_2)
+        )
         if not queryset:
             return queryset
 
         # stayable day validation
-        stay = end_time - start_time
-        min_stay = int(queryset[0].min_stay)
-        max_stay = int(queryset[0].max_stay)
-        print(min_stay, max_stay)
-        if not (stay >= timedelta(min_stay) and stay <= timedelta(max_stay)):
-            raise ValueError(
-                "your trying to stay is not match to room's condition",
-                "look at stayable days of room.",
-                )
+        stay = end_time - start_time + timedelta(1)
+        min_stay = Q(min_stay__lte=stay.days)
+        max_stay = Q(max_stay__gte=stay.days)
+        queryset = queryset.filter(min_stay & max_stay)
     return queryset
-
 
 class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
     """A function, able to get, update detail of reservation.
@@ -147,7 +137,7 @@ class ReservationCreateView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
         room = Room.objects.filter(id=self.kwargs.get("pk"))
-
+        
         if reservation_validation(room, start_date, end_date):
             return super().post(request, *args, **kwargs)
         raise ValueError("Date already reservated!", "check for another date.")
