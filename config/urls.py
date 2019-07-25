@@ -8,4 +8,5 @@ urlpatterns = [
     path("api/", include("config.api_urls")),
     # path("accounts/", include("rest_framework.urls")),
     path("api-auth/", include('rest_framework.urls')),
+    path('chat/', include('chat.urls'))  # TODO: remove when test ends
 ]
