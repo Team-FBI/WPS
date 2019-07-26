@@ -19,7 +19,7 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ["id", "username", "image", "description"]
+        fields = ["id", "username", "email", "image", "description"]
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
@@ -30,6 +30,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "username",
+            "email",
             "first_name",
             "last_name",
             "image",
@@ -59,6 +60,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "username",
+            "email",
             "first_name",
             "last_name",
             "password",
