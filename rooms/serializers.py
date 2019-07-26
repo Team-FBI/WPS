@@ -129,7 +129,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     def get_host(self, obj):
         return obj.host.username
     
-    def get_state(self.obj):
+    def get_state(self, obj):
         return obj.state.name
 
     def get_images(self, obj):
