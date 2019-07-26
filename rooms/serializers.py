@@ -21,6 +21,7 @@ class RoomListSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
 
     def get_host(self, obj):
         return obj.host.username
@@ -35,6 +36,14 @@ class RoomListSerializer(serializers.ModelSerializer):
 
     def get_state(self, obj):
         return obj.state.name
+
+    def get_label(self, obj):
+        result = None
+        if int(obj.total_rating) > 4:
+            result = "plus"
+        if obj.host.is_staff:
+            result = "luxe"
+        return result
 
     class Meta:
         model = Room.Room
@@ -55,6 +64,7 @@ class RoomListSerializer(serializers.ModelSerializer):
             "images",
             "reservations",
             "state",
+            "label",
         ]
 
 
