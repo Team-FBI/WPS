@@ -19,7 +19,7 @@ class RoomListSerializer(serializers.ModelSerializer):
         source="get_room_type_display", choices=Room.ROOM_TYPES
     )
     images = serializers.SerializerMethodField()
-
+    reservations = serializers.SerializerMethodField()
 
     def get_host(self, obj):
         return obj.host.username
@@ -28,7 +28,9 @@ class RoomListSerializer(serializers.ModelSerializer):
         images = [obj.image, obj.image_1, obj.image_2, obj.image_3, obj.image_4]
         result = [1 for img in images if img]
         return len(result)
-    
+
+    def get_reservations(self, obj):
+        return obj.reservations.count()    
     class Meta:
         model = Room.Room
         fields = [
@@ -45,7 +47,8 @@ class RoomListSerializer(serializers.ModelSerializer):
             "capacity",
             "bath_type",
             "address",
-            "images"
+            "images",
+            "reservations",
         ]
         
 
