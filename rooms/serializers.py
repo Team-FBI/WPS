@@ -115,6 +115,8 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     facilities = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
 
     def get_facilities(self, obj):
         facilities = obj.facilities.all()
@@ -126,11 +128,22 @@ class RoomDetailSerializer(serializers.ModelSerializer):
 
     def get_host(self, obj):
         return obj.host.username
+    
+    def get_state(self.obj):
+        return obj.state.name
 
     def get_images(self, obj):
         images = [obj.image, obj.image_1, obj.image_2, obj.image_3, obj.image_4]
         result = [1 for img in images if img]
         return len(result)
+
+    def get_label(self, obj):
+        result = None
+        if int(obj.total_rating) > 4:
+            result = "plus"
+        if obj.host.is_staff:
+            result = "luxe"
+        return result
 
     class Meta:
         model = Room.Room
@@ -160,4 +173,5 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "reservations",
             "updated_at",
             "created_at",
+            "label",
         ]

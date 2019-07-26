@@ -73,6 +73,7 @@ class Room(models.Model):
     bath_type = models.SmallIntegerField(choices=BATHROOM_TYPES, default=1)
     cancellation = models.SmallIntegerField(choices=CANCELATION_RULES, default=1)
     description = models.TextField(blank=True, null=True)
+    locational_description = models.TextField(blank=True, null=True)
     total_rating = models.FloatField(default=0)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
