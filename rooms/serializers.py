@@ -20,6 +20,7 @@ class RoomListSerializer(serializers.ModelSerializer):
     )
     images = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
+    state = serializers.SerializerMethodField()
 
     def get_host(self, obj):
         return obj.host.username
@@ -30,7 +31,11 @@ class RoomListSerializer(serializers.ModelSerializer):
         return len(result)
 
     def get_reservations(self, obj):
-        return obj.reservations.count()    
+        return obj.reservations.count()
+
+    def get_state(self, obj):
+        return obj.state.name
+
     class Meta:
         model = Room.Room
         fields = [
@@ -49,9 +54,8 @@ class RoomListSerializer(serializers.ModelSerializer):
             "address",
             "images",
             "reservations",
+            "state",
         ]
-        
-
 
 
 class RoomCreateSerializer(serializers.ModelSerializer):
