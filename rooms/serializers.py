@@ -18,11 +18,17 @@ class RoomListSerializer(serializers.ModelSerializer):
     room_type = serializers.ChoiceField(
         source="get_room_type_display", choices=Room.ROOM_TYPES
     )
+    images = serializers.SerializerMethodField()
 
 
     def get_host(self, obj):
         return obj.host.username
 
+    def get_images(self, obj):
+        images = [obj.image, obj.image_1, obj.image_2, obj.image_3, obj.image_4]
+        result = [1 for img in images if img]
+        return len(result)
+    
     class Meta:
         model = Room.Room
         fields = [
@@ -30,10 +36,6 @@ class RoomListSerializer(serializers.ModelSerializer):
             "host",
             "title",
             "image",
-            "image_1",
-            "image_2",
-            "image_3",
-            "image_4",
             "price",
             "description",
             "room_type",
@@ -43,27 +45,25 @@ class RoomListSerializer(serializers.ModelSerializer):
             "capacity",
             "bath_type",
             "address",
+            "images"
         ]
+        
+
 
 
 class RoomCreateSerializer(serializers.ModelSerializer):
-    capacity = serializers.ChoiceField(choices=Room.NO_OF_BEDS)
     room_type = serializers.ChoiceField(
         choices=Room.ROOM_TYPES, help_text=f"{Room.ROOM_TYPES}"
     )
     space = serializers.ChoiceField(
         choices=Room.SPACE_TYPES, help_text=f"{Room.SPACE_TYPES}"
     )
-    bedroom = serializers.ChoiceField(choices=Room.NO_OF_ROOMS)
     bed_type = serializers.ChoiceField(
         choices=Room.BATHROOM_TYPES, help_text=f"{Room.BATHROOM_TYPES}"
     )
-    bathroom = serializers.ChoiceField(choices=Room.NO_OF_ROOMS)
     cancellation = serializers.ChoiceField(
         choices=Room.CANCELATION_RULES, help_text=f"{Room.CANCELATION_RULES}"
     )
-    min_stay = serializers.ChoiceField(choices=Room.MIN_STAY)
-    max_stay = serializers.ChoiceField(choices=Room.MAX_STAY)
 
     class Meta:
         model = Room.Room
@@ -83,35 +83,21 @@ class FacilityField(serializers.ModelSerializer):
 
 class RoomDetailSerializer(serializers.ModelSerializer):
     host = serializers.SerializerMethodField()
-    capacity = serializers.ChoiceField(
-        source="get_capacity_display", choices=Room.NO_OF_BEDS
-    )
     room_type = serializers.ChoiceField(
         source="get_room_type_display", choices=Room.ROOM_TYPES
     )
     space = serializers.ChoiceField(
         source="get_space_display", choices=Room.SPACE_TYPES
     )
-    bedroom = serializers.ChoiceField(
-        source="get_bedroom_display", choices=Room.NO_OF_ROOMS
-    )
     bath_type = serializers.ChoiceField(
         source="get_bath_type_display", choices=Room.BATHROOM_TYPES
-    )
-    bathroom = serializers.ChoiceField(
-        source="get_bathroom_display", choices=Room.NO_OF_ROOMS
     )
     cancellation = serializers.ChoiceField(
         source="get_cancellation_display", choices=Room.CANCELATION_RULES
     )
-    min_stay = serializers.ChoiceField(
-        source="get_min_stay_display", choices=Room.MIN_STAY
-    )
-    max_stay = serializers.ChoiceField(
-        source="get_max_stay_display", choices=Room.MAX_STAY
-    )
     facilities = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
 
     def get_facilities(self, obj):
         facilities = obj.facilities.all()
@@ -124,6 +110,11 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     def get_host(self, obj):
         return obj.host.username
 
+    def get_images(self, obj):
+        images = [obj.image, obj.image_1, obj.image_2, obj.image_3, obj.image_4]
+        result = [1 for img in images if img]
+        return len(result)
+
     class Meta:
         model = Room.Room
         fields = [
@@ -135,10 +126,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "postal_code",
             "mobile",
             "image",
-            "image_1",
-            "image_2",
-            "image_3",
-            "image_4",
+            "images",
             "total_rating",
             "capacity",
             "space",

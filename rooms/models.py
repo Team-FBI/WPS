@@ -9,14 +9,6 @@ def n_tuple(n, first=[], last=[]):
     return tuple(first + [(i, i) for i in range(1, n)] + last)
 
 
-NO_OF_ROOMS = n_tuple(10)
-MIN_STAY = n_tuple(90)
-MAX_STAY = n_tuple(60, first=[(0, "Unlimited")])
-NO_OF_BEDS = n_tuple(20, first=[(0, "-")])
-ROOM_RATING = n_tuple(6, first=[(0, "Not rated")])
-ORDER = n_tuple(20, first=[(0, "-")])
-MAX_GUEST = n_tuple(20, first=[(0, "-")])
-
 ROOM_TYPES = [
     (1, "Apartment"),
     (2, "House"),
@@ -24,7 +16,7 @@ ROOM_TYPES = [
     (4, "Bed and Breakfast"),
     (5, "Villa"),
     (6, "Caravan"),
-    (50, "Office"),
+    (7, "Office"),
 ]
 
 SPACE_TYPES = [(1, "Entire room"), (2, "Private Room"), (3, "Shared Room")]
@@ -33,44 +25,25 @@ BATHROOM_TYPES = [(1, "Private"), (2, "Shared")]
 
 CANCELATION_RULES = [(1, "Flexible"), (2, "Semi-flexible"), (3, "Strict")]
 
-UNAVAIL_REASON = [(1, "Unavailable"), (2, "Requested"), (3, "Booked")]
-
-PHOTO_TYPES = [
-    (1, "Inside of the room"),
-    (2, "View of the room"),
-    (3, "External appearance of the room"),
-    (4, "Around the room"),
-    (4, "Other"),
-]
-
-BOOKING_STATUS = [
-    (5, "Prepared"),
-    (8, "Pre Requested - Waiting for payment"),
-    (9, "Pre Requested - Waiting for confirmation of payment"),
-    (10, "Requested"),
-    (20, "Confirmed by host"),
-    (30, "Confirmed by guest"),
-    (40, "Rejected by host"),
-    (50, "Canceled by guest"),
-    (60, "Canceled by staff"),
-]
-
-MESSAGE_STATUS = [
-    (10, "Waiting for confirmation"),
-    (20, "Confirmed, visible"),
-    (25, "Directly send"),
-    (30, "Deactived by staff"),
-    (40, "Deleted"),
-    (50, "Archived"),
-]
-
-
 class Facility(models.Model):
     name = models.CharField(max_length=250)
 
     def __str__(self):
         return self.name
 
+def get_upload_path(instance, filename, counter={4,3,2,1,0}):
+    name = None
+    format_key = filename.split(".")[-1]
+    if counter:
+        name = counter.pop()
+    if instance.image != f"rooms/{instance.id}/0.{format_key}" and name in range(0,5):
+        for v in range(4,-1,-1):
+            counter.add(v)
+        name = counter.pop()
+    
+    path =  f"rooms/{instance.id}/{name}.{format_key}"
+    return path
+    
 
 class Room(models.Model):
     host = models.ForeignKey(
@@ -84,21 +57,21 @@ class Room(models.Model):
     )
     postal_code = models.CharField(max_length=15, blank=True, null=True)
     mobile = models.IntegerField(blank=False, null=False)
-    image = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
-    image_1 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
-    image_2 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
-    image_3 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
-    image_4 = models.ImageField(upload_to=f"rooms/%Y/%m/%d/", blank=True, null=True)
+    image = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
+    image_1 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
+    image_2 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
+    image_3 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
+    image_4 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     price = models.PositiveIntegerField(blank=True, null=True)
-    capacity = models.SmallIntegerField(choices=NO_OF_BEDS, default=6)
     room_type = models.SmallIntegerField(choices=ROOM_TYPES, default=1)
     space = models.SmallIntegerField(choices=SPACE_TYPES, default=1)
-    bedroom = models.SmallIntegerField(choices=NO_OF_ROOMS, default=1)
+    capacity = models.PositiveSmallIntegerField(default=1)
+    bedroom = models.PositiveSmallIntegerField(default=1)
+    bathroom = models.PositiveSmallIntegerField(default=0)
+    min_stay = models.PositiveSmallIntegerField(default=1)
+    max_stay = models.PositiveSmallIntegerField(default=10)
     bath_type = models.SmallIntegerField(choices=BATHROOM_TYPES, default=1)
-    bathroom = models.SmallIntegerField(choices=NO_OF_ROOMS, default=1)
     cancellation = models.SmallIntegerField(choices=CANCELATION_RULES, default=1)
-    min_stay = models.SmallIntegerField(choices=MIN_STAY, default=1)
-    max_stay = models.SmallIntegerField(choices=MAX_STAY, default=0)
     description = models.TextField(blank=True, null=True)
     total_rating = models.FloatField(default=0)
     active = models.BooleanField(default=True)
