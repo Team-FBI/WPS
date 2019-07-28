@@ -95,11 +95,6 @@ class RoomCreateSerializer(serializers.ModelSerializer):
             "checkin_score",
         ]
 
-    def create(self, validated_data):
-        title = validated_data.get("title")
-        validated_data.update({"slug": slugify(title, allow_unicode=True)})
-        return super().create(validated_data)
-
 
 class FacilityField(serializers.ModelSerializer):
     class Meta:
@@ -136,7 +131,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         return [[v.start_date, v.end_date] for v in reservations if v.is_active]
 
     def get_host(self, obj):
-        return {"name":obj.host.username, "email":obj.host.email, "host_image":obj.host.image}
+        return [obj.host.username, obj.host.email, obj.host.image]
 
     def get_state(self, obj):
         return obj.state.name

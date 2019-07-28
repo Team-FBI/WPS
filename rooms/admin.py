@@ -12,6 +12,7 @@ class RoomOption(admin.ModelAdmin):
         "location_score",
         "checkin_score",
         "clean_score",
+        "communication_score",
         "value_score",
         "active",
     ]
