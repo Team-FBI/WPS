@@ -43,7 +43,7 @@ class Room(models.Model):
         get_user_model(), on_delete=models.CASCADE, related_name="rooms"
     )
     title = models.CharField(max_length=100)
-    slug = models.SlugField(blank=True, null=True)
+    slug = models.SlugField(blank=True, null=True, readonly=True)
     address = models.CharField(max_length=250, blank=True)
     state = models.ForeignKey(
         State, on_delete=models.SET_NULL, related_name="rooms", null=True, blank=False
@@ -82,6 +82,10 @@ class Room(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-updated_at"]
+
+    def save(self):
+        self.slug = slugify(self.title)
+        return super().save()
 
     def __str__(self):
         return f"{self.state.name} / {self.slug} / {self.host}"
