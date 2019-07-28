@@ -50,6 +50,7 @@ def reservation_validation(queryset, start_date, end_date):
         queryset = queryset.filter(min_stay & max_stay)
     return queryset
 
+
 class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
     """A function, able to get, update detail of reservation.
     
@@ -81,7 +82,10 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
 
     @response_error_handler
     def get(self, request, *args, **kwargs):
-        if (request.user.id in (self.get_queryset()[0].user.id, self.get_queryset()[0].room.host.id)):
+        if request.user.id in (
+            self.get_queryset()[0].user.id,
+            self.get_queryset()[0].room.host.id,
+        ):
             return super().get(request, *args, **kwargs)
         raise PermissionError(
             "only owner of reservation or host of room could do this", "dont do it"
@@ -99,7 +103,8 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
             )
         super().put(request, *args, **kwargs)
         room_id = int(self.get_queryset()[0].room_id)
-        reservations = RoomReservation.objects.filter(room=room_id).aggregate(
+        target = RoomReservation.objects.filter(room=room_id)
+        totals = target.aggregate(
             Avg("accuracy_score"),
             Avg("location_score"),
             Avg("communication_score"),
@@ -108,11 +113,15 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
             Avg("value_score"),
         )
         total = 0
-        for key, val in reservations.items():
+        room = Room.objects.filter(id=room_id)
+        updates = dict()
+        for key, val in totals.items():
             total += val
-        total = round(total / 7, 2)
-        Room.objects.filter(id=room_id).update(total_rating=total)
-        return Response(data=None, status=status.HTTP_202_ACCEPTED)
+            updates.setdefault(key[:-5] , round(val, 2))
+
+        total = round(total / 6, 2)
+        room.update(**updates, total_rating=total)
+        return Response(data=updates, status=status.HTTP_202_ACCEPTED)
 
 
 class ReservationCreateView(generics.CreateAPIView):
@@ -137,7 +146,7 @@ class ReservationCreateView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
         room = Room.objects.filter(id=self.kwargs.get("pk"))
-        
+
         if reservation_validation(room, start_date, end_date):
             return super().post(request, *args, **kwargs)
         raise ValueError("Date already reservated!", "check for another date.")

@@ -7,7 +7,7 @@ class ReservationDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomReservation
-        exclude = ("start_date", "end_date")
+        exclude = "__all__"
 
     def get_user(self, obj):
         return obj.user.username
@@ -32,6 +32,12 @@ class ReservationUpdateSerializer(serializers.ModelSerializer):
         exclude = ["start_date", "end_date", "id", "room", "user", "is_active"]
 
     def update(self, instance, validated_data):
+        scores = [int(v) for v in validated_data.values() if isinstance(v, int)]
+        if not (len(scores) is 6):
+            raise ValueError("all 6 score should be sepecified in integer", "and no digits!")
+        for score in scores:
+            if score > 5 or score < 0:
+                raise ValueError("score should be in 0~5 in integer", "and no digits!")
         instance.is_active=False
         instance.save()
         return super().update(instance, validated_data)
