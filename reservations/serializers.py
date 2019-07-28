@@ -7,7 +7,7 @@ class ReservationDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomReservation
-        exclude = "__all__"
+        fields = "__all__"
 
     def get_user(self, obj):
         return obj.user.username

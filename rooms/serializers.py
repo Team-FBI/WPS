@@ -15,9 +15,6 @@ class RoomListSerializer(serializers.ModelSerializer):
     bath_type = serializers.ChoiceField(
         source="get_bath_type_display", choices=Room.BATHROOM_TYPES
     )
-    room_type = serializers.ChoiceField(
-        source="get_room_type_display", choices=Room.ROOM_TYPES
-    )
     reservations = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
