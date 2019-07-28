@@ -131,7 +131,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         return [[v.start_date, v.end_date] for v in reservations if v.is_active]
 
     def get_host(self, obj):
-        return [obj.host.username, obj.host.email, obj.host.image]
+        return obj.host.username
 
     def get_state(self, obj):
         return obj.state.name
@@ -154,6 +154,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "host",
+            # "host_detail",
             "address",
             "state",
             "postal_code",
