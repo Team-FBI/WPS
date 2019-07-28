@@ -102,7 +102,6 @@ class StaffSerializer(serializers.ModelSerializer):
             "password",
             "image",
             "description",
-            "is_staff",
         ]
 
     def create(self, validated_data):
@@ -115,7 +114,6 @@ class StaffSerializer(serializers.ModelSerializer):
             ]
         ):
             raise PermissionError("not registered id for staff", "dont do it")
-        print(validated_data)
         validated_data["is_staff"] = True
         return self.Meta.model.objects.create_user(**validated_data)
 
