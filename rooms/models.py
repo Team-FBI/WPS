@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from locations.models import State
-
+import uuid
 
 def n_tuple(n, first=[], last=[]):
     return tuple(first + [(i, i) for i in range(1, n)] + last)
@@ -34,7 +34,7 @@ class Facility(models.Model):
 
 
 def get_upload_path(instance, filename):
-    path = f"rooms/{instance.id}/{filename}"
+    path = f"rooms/{instance.host.id}/{instance.slug}/{filename}"
     return path
 
 
