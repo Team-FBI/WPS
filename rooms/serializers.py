@@ -131,14 +131,16 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         return [[v.start_date, v.end_date] for v in reservations if v.is_active]
 
     def get_host(self, obj):
-        return obj.host.username
+        email = obj.host.email or None
+        img = obj.host.image.url else None
+        return [obj.host.username, email, img]
 
     def get_state(self, obj):
         return obj.state.name
 
     def get_label(self, obj):
         result = None
-        if int(obj.total_rating) > 4:
+        if int(obj.total_rating) >= 4:
             result = "plus"
         if obj.host.is_staff:
             result = "luxe"
@@ -154,7 +156,6 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "host",
-            # "host_detail",
             "address",
             "state",
             "postal_code",
