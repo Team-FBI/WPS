@@ -25,25 +25,27 @@ BATHROOM_TYPES = [(1, "Private"), (2, "Shared")]
 
 CANCELATION_RULES = [(1, "Flexible"), (2, "Semi-flexible"), (3, "Strict")]
 
+
 class Facility(models.Model):
     name = models.CharField(max_length=250)
 
     def __str__(self):
         return self.name
 
-def get_upload_path(instance, filename, counter={4,3,2,1,0}):
+
+def get_upload_path(instance, filename, counter={4, 3, 2, 1, 0}):
     name = None
     format_key = filename.split(".")[-1]
     if counter:
         name = counter.pop()
-    if instance.image != f"rooms/{instance.id}/0.{format_key}" and name in range(0,5):
-        for v in range(4,-1,-1):
+    if instance.image != f"rooms/{instance.id}/0.{format_key}" and name in range(0, 5):
+        for v in range(4, -1, -1):
             counter.add(v)
         name = counter.pop()
-    
-    path =  f"rooms/{instance.id}/{name}.{format_key}"
+
+    path = f"rooms/{instance.id}/{name}.{format_key}"
     return path
-    
+
 
 class Room(models.Model):
     host = models.ForeignKey(
@@ -67,6 +69,7 @@ class Room(models.Model):
     space = models.SmallIntegerField(choices=SPACE_TYPES, default=1)
     capacity = models.PositiveSmallIntegerField(default=1)
     bedroom = models.PositiveSmallIntegerField(default=1)
+    beds = models.PositiveSmallIntegerField(default=1)
     bathroom = models.PositiveSmallIntegerField(default=0)
     min_stay = models.PositiveSmallIntegerField(default=1)
     max_stay = models.PositiveSmallIntegerField(default=10)
@@ -75,6 +78,12 @@ class Room(models.Model):
     description = models.TextField(blank=True, null=True)
     locational_description = models.TextField(blank=True, null=True)
     total_rating = models.FloatField(default=0)
+    accuracy_score = models.FloatField(default=0)
+    location_score = models.FloatField(default=0)
+    communication_score = models.FloatField(default=0)
+    checkin_score = models.FloatField(default=0)
+    clean_score = models.FloatField(default=0)
+    value_score = models.FloatField(default=0)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

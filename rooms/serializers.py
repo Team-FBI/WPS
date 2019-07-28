@@ -18,18 +18,12 @@ class RoomListSerializer(serializers.ModelSerializer):
     room_type = serializers.ChoiceField(
         source="get_room_type_display", choices=Room.ROOM_TYPES
     )
-    images = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
 
     def get_host(self, obj):
         return obj.host.username
-
-    def get_images(self, obj):
-        images = [obj.image, obj.image_1, obj.image_2, obj.image_3, obj.image_4]
-        result = [1 for img in images if img]
-        return len(result)
 
     def get_reservations(self, obj):
         return obj.reservations.count()
@@ -39,7 +33,7 @@ class RoomListSerializer(serializers.ModelSerializer):
 
     def get_label(self, obj):
         result = None
-        if int(obj.total_rating) > 4:
+        if int(obj.total_rating) >= 4:
             result = "plus"
         if obj.host.is_staff:
             result = "luxe"
@@ -52,6 +46,10 @@ class RoomListSerializer(serializers.ModelSerializer):
             "host",
             "title",
             "image",
+            "image_1",
+            "image_2",
+            "image_3",
+            "image_4",
             "price",
             "description",
             "room_type",
@@ -61,7 +59,6 @@ class RoomListSerializer(serializers.ModelSerializer):
             "capacity",
             "bath_type",
             "address",
-            "images",
             "reservations",
             "state",
             "label",
@@ -84,7 +81,19 @@ class RoomCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Room.Room
-        exclude = ["slug", "id", "created_at", "total_rating", "updated_at"]
+        exclude = [
+            "slug",
+            "id",
+            "created_at",
+            "updated_at",
+            "total_rating",
+            "clean_score",
+            "accuracy_score",
+            "value_score",
+            "location_score",
+            "communication_score",
+            "checkin_score",
+        ]
 
     def create(self, validated_data):
         title = validated_data.get("title")
@@ -114,9 +123,9 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     )
     facilities = serializers.SerializerMethodField()
     reservations = serializers.SerializerMethodField()
-    images = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
+    super_host = serializers.SerializerMethodField()
 
     def get_facilities(self, obj):
         facilities = obj.facilities.all()
@@ -128,14 +137,9 @@ class RoomDetailSerializer(serializers.ModelSerializer):
 
     def get_host(self, obj):
         return obj.host.username
-    
+
     def get_state(self, obj):
         return obj.state.name
-
-    def get_images(self, obj):
-        images = [obj.image, obj.image_1, obj.image_2, obj.image_3, obj.image_4]
-        result = [1 for img in images if img]
-        return len(result)
 
     def get_label(self, obj):
         result = None
@@ -144,6 +148,10 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         if obj.host.is_staff:
             result = "luxe"
         return result
+
+    def get_super_host(self, obj):
+        if obj.host.rooms.filter(total_rating__gte=3.8).count() > 3:
+            return True
 
     class Meta:
         model = Room.Room
@@ -156,22 +164,34 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "postal_code",
             "mobile",
             "image",
-            "images",
+            "image_1",
+            "image_2",
+            "image_3",
+            "image_4",
             "total_rating",
             "capacity",
             "space",
             "room_type",
             "bedroom",
+            "beds",
             "bath_type",
             "bathroom",
             "cancellation",
             "min_stay",
             "max_stay",
             "description",
+            "loaction_description",
             "price",
             "facilities",
             "reservations",
             "updated_at",
             "created_at",
             "label",
+            "accuracy_score",
+            "location_score",
+            "communication_score",
+            "checkin_score",
+            "clean_score",
+            "value_score",
+            "super_host",
         ]
