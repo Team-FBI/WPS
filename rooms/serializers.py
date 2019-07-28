@@ -132,7 +132,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
 
     def get_host(self, obj):
         email = obj.host.email or None
-        img = obj.host.image.url else None
+        img = obj.host.image.url or None
         return [obj.host.username, email, img]
 
     def get_state(self, obj):
