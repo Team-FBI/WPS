@@ -180,7 +180,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "min_stay",
             "max_stay",
             "description",
-            "loaction_description",
+            "location_description",
             "price",
             "facilities",
             "reservations",
