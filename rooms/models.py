@@ -43,7 +43,7 @@ class Room(models.Model):
         get_user_model(), on_delete=models.CASCADE, related_name="rooms"
     )
     title = models.CharField(max_length=100)
-    slug = models.SlugField(blank=True, null=True, readonly=True)
+    slug = models.SlugField(blank=True, null=True)
     address = models.CharField(max_length=250, blank=True)
     state = models.ForeignKey(
         State, on_delete=models.SET_NULL, related_name="rooms", null=True, blank=False
