@@ -33,17 +33,8 @@ class Facility(models.Model):
         return self.name
 
 
-def get_upload_path(instance, filename, counter={4, 3, 2, 1, 0}):
-    name = None
-    format_key = filename.split(".")[-1]
-    if counter:
-        name = counter.pop()
-    if instance.image != f"rooms/{instance.id}/0.{format_key}" and name in range(0, 5):
-        for v in range(4, -1, -1):
-            counter.add(v)
-        name = counter.pop()
-
-    path = f"rooms/{instance.id}/{name}.{format_key}"
+def get_upload_path(instance, filename):
+    path = f"rooms/{instance.id}/{filename}"
     return path
 
 
