@@ -18,6 +18,12 @@ class RoomListSerializer(serializers.ModelSerializer):
     reservations = serializers.SerializerMethodField()
     state = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
+    super_host = serializers.SerializerMethodField()
+    facilities = serializers.SerializerMethodField()
+
+    def get_facilities(self, obj):
+        facilities = obj.facilities.all()
+        return [v.name for v in facilities]
 
     def get_host(self, obj):
         return obj.host.username
@@ -36,6 +42,14 @@ class RoomListSerializer(serializers.ModelSerializer):
             result = "luxe"
         return result
 
+    def get_super_host(self, obj):
+        if obj.host.rooms.filter(total_rating__gte=3.8).count() > 3:
+            return True
+
+    def get_facilities(self, obj):
+        facilities = obj.facilities.all()
+        return [v.name for v in facilities]
+
     class Meta:
         model = Room.Room
         fields = [
@@ -53,12 +67,15 @@ class RoomListSerializer(serializers.ModelSerializer):
             "space",
             "total_rating",
             "bedroom",
+            "beds",
             "capacity",
             "bath_type",
             "address",
             "reservations",
             "state",
             "label",
+            "super_host",
+            "facilities",
         ]
 
 
