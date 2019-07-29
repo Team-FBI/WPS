@@ -28,6 +28,7 @@ def response_error_handler(func: Callable) -> Callable:
             elif isinstance(e, ValidationError):
                 err = Exception(e.detail, "retype form data")
                 res_code = status.HTTP_400_BAD_REQUEST
+                return Response(data=err.args[0], status=res_code)
             elif isinstance(e, (AttributeError, ValueError)):
                 err = e
                 res_code = status.HTTP_400_BAD_REQUEST
