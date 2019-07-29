@@ -181,10 +181,22 @@ class StaffListCreateView(viewsets.generics.ListCreateAPIView):
         return serializer_class
 
 class CustomObtainAuthToken(ObtainAuthToken):
+    """A function, able to get token with username and password
+    
+    Arguments:
+        ObtainAuthToken {[Post and get Token]} -- [Post handler]
+    
+    Raises:
+        ValidationError: [POST-HTTP_400_BAD_REQUEST]
+
+    Returns:
+        [POST] -- [HTTP_200_OK]
+    """
+    @response_error_handler
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key, 'user': token.user.id})
+        return Response({'token': token.key, 'user': token.user.id},status=status.HTTP_200_OK)
