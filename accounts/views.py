@@ -2,6 +2,7 @@ from config.utils import response_error_handler
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.request import Request
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (
     IsAdminUser,
     AllowAny,
@@ -46,6 +47,10 @@ class UserListView(viewsets.generics.ListCreateAPIView):
 
     @response_error_handler
     def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+        email_avail = get_user_model().objects.filter(email=email)
+        if len(email_avail) or not email:
+            raise ValidationError(detail="email already exists or no email sended")
         return super().post(request, *args, **kwargs)
 
 
@@ -172,6 +177,10 @@ class StaffListCreateView(viewsets.generics.ListCreateAPIView):
         key_b = "FBI_F"
         if all([key_a not in username, key_b not in username]):
             raise PermissionError("not registered id for staff", "dont do it")
+        email = request.data.get("email")
+        email_avail = get_user_model().objects.filter(email=email)
+        if len(email_avail) or not email:
+            raise ValidationError(detail="email already exists or not email sended")
         return super().post(request, args, kwargs)
 
     def get_serializer_class(self):
