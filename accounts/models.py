@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
+    email = models.EmailField(unique=True)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to="user_image/profile/%Y/%m/%d/", blank=True)
 
