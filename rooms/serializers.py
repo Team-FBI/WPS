@@ -68,6 +68,7 @@ class RoomListSerializer(serializers.ModelSerializer):
             "total_rating",
             "bedroom",
             "beds",
+            "bathroom",
             "capacity",
             "bath_type",
             "address",
