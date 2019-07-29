@@ -50,7 +50,7 @@ class UserListView(viewsets.generics.ListCreateAPIView):
         email = request.data.get("email")
         email_avail = get_user_model().objects.filter(email=email)
         if len(email_avail) or not email:
-            raise ValidationError(detail="email already exists or no email sended")
+            raise ValidationError(detail={"email":["email already exists or not email sended"]})
         return super().post(request, *args, **kwargs)
 
 
@@ -180,7 +180,7 @@ class StaffListCreateView(viewsets.generics.ListCreateAPIView):
         email = request.data.get("email")
         email_avail = get_user_model().objects.filter(email=email)
         if len(email_avail) or not email:
-            raise ValidationError(detail="email already exists or not email sended")
+            raise ValidationError(detail={"email":["email already exists or not email sended"]})
         return super().post(request, args, kwargs)
 
     def get_serializer_class(self):

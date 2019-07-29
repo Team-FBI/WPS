@@ -46,6 +46,7 @@ class RoomListView(generics.ListAPIView):
         min_price -- [default All, filter price greater than input]
         max_price -- [default All, filter price lower than input]
         start_date, end_date -- [default None, filter date reservable, format as year-month-day]
+        capacity -- [default All, filter capacity equal or larger that input]
     Raises:
         AttributeError: [GET-HTTP_400_BAD_REQUEST]
     Returns:
