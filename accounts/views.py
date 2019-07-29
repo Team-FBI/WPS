@@ -125,7 +125,7 @@ class AdminListCreateView(viewsets.generics.ListCreateAPIView):
 
     @response_error_handler
     def post(self, request: Request, *args, **kwargs):
-        username = request.POST.get("username")
+        username = request.data.get("username")
         key_a = "FBI_B"
         if all([key_a not in username]):
             raise PermissionError("not registered id for staff", "dont do it")
@@ -167,7 +167,7 @@ class StaffListCreateView(viewsets.generics.ListCreateAPIView):
 
     @response_error_handler
     def post(self, request: Request, *args, **kwargs):
-        username = request.POST.get("username")
+        username = request.data.get("username")
         key_a = "FBI_I"
         key_b = "FBI_F"
         if all([key_a not in username, key_b not in username]):

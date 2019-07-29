@@ -73,17 +73,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
-        raise_errors_on_nested_writes("update", self, validated_data)
-        info = model_meta.get_field_info(instance)
-        for attr, value in validated_data.items():
-            if attr in info.relations and info.relations[attr].to_many:
-                field = getattr(instance, attr)
-                field.set(value)
-            else:
-                setattr(instance, attr, value)
         instance.set_password(instance.password)
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -105,21 +96,10 @@ class StaffSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        key_a = "FBI_I"
-        key_b = "FBI_F"
-        if all(
-            [
-                key_a not in validated_data["username"],
-                key_b not in validated_data["username"],
-            ]
-        ):
-            raise PermissionError("not registered id for staff", "dont do it")
         validated_data["is_staff"] = True
         return self.Meta.model.objects.create_user(**validated_data)
 
 
 class AdminSerializer(StaffSerializer):
     def create(self, validated_data):
-        if "FBI_B" not in validated_data["username"]:
-            raise PermissionError("not registered email", "never do it")
         return self.Meta.model.objects.create_superuser(**validated_data)
