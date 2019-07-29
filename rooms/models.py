@@ -49,7 +49,7 @@ class Room(models.Model):
         State, on_delete=models.SET_NULL, related_name="rooms", null=True, blank=False
     )
     postal_code = models.CharField(max_length=15, blank=True, null=True)
-    mobile = models.IntegerField(blank=False, null=False)
+    mobile = models.CharField(max_length=15, blank=True, null=True)
     image = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     image_1 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     image_2 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
