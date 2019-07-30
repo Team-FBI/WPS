@@ -82,22 +82,22 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "fbinb",
-        "USER": "fbinb",
-        "PASSWORD": get_secret("RDS_PASSWORD"),
-        "HOST": "fbinb.cxzf4192gezj.ap-northeast-2.rds.amazonaws.com",
-        "PORT": "5432",
-    }
-}
 # DATABASES = {
 #     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+#         "ENGINE": "django.db.backends.postgresql_psycopg2",
+#         "NAME": "fbinb",
+#         "USER": "fbinb",
+#         "PASSWORD": get_secret("RDS_PASSWORD"),
+#         "HOST": "fbinb.cxzf4192gezj.ap-northeast-2.rds.amazonaws.com",
+#         "PORT": "5432",
 #     }
 # }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
+    }
+}
 
 
 # Password validation
@@ -117,13 +117,13 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Seoul"
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
@@ -184,8 +184,8 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-            # "hosts": [('aws_redis_endpoint', 6379)],
+            "hosts": [('airbnb-redis.fk7rbs.0001.apn2.cache.amazonaws.com', 6379)],
+            # "hosts": [('127.0.0.1', 6379)], # for local test
         },
     },
 }
