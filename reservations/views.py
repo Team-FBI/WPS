@@ -42,10 +42,10 @@ def reservation_validation(queryset: QuerySet, start_date, end_date):
         min_stay = Q(min_stay__lte=stay.days)
         max_stay = Q(max_stay__gte=stay.days)
         # stayable date validation
-        condition_date_1_1 = Q(reservations__start_date__lte=start_time)
-        condition_date_1_2 = Q(reservations__end_date__gt=start_time)
-        condition_date_2_1 = Q(reservations__start_date__lt=end_time)
-        condition_date_2_2 = Q(reservations__end_date__gte=end_time)
+        condition_date_1_1 = Q(start_date__lte=start_time)
+        condition_date_1_2 = Q(end_date__gt=start_time)
+        condition_date_2_1 = Q(start_date__lt=end_time)
+        condition_date_2_2 = Q(end_date__gte=end_time)
         condition_a = Q((condition_date_1_1 & condition_date_1_2))
         condition_b = Q((condition_date_2_1 & condition_date_2_2))
         condition_primary = Q(min_stay & max_stay)
@@ -53,7 +53,7 @@ def reservation_validation(queryset: QuerySet, start_date, end_date):
         if not queryset.count():
             return queryset
         excludes = set()
-        for data in queryset:
+        for data in queryset.all():
             if data.reservations.count() != 0:
                 results = data.reservations.filter(~condition_a&~condition_b)
                 if results.count():
