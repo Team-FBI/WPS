@@ -39,7 +39,7 @@ def reservation_validation(queryset, start_date, end_date):
         condition_date_1_2 = Q(reservations__end_date__gt=start_time)
         condition_date_2_1 = Q(reservations__start_date__lt=end_time)
         condition_date_2_2 = Q(reservations__end_date__gte=end_time)
-        queryset = queryset.filter(~Q(condition_date_1_1 & condition_date_1_2) & ~Q(condition_date_2_1 & condition_date_2_2))
+        queryset = queryset.filter(Q(~Q(condition_date_1_1 & condition_date_1_2)|~Q(condition_date_2_1 & condition_date_2_2)))
         if not queryset:
             return queryset
         # stayable day validation
