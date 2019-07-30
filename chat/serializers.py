@@ -51,4 +51,3 @@ class ReservationListSerializer(ReservationSerializer):
 
     def get_latest_message(self, obj):
         return MessageSerializer(obj.messages.latest('created')).data
-
