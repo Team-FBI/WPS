@@ -19,6 +19,8 @@ from reservations.serializers import (
 
 def reservation_validation(queryset, start_date, end_date):
     if start_date and end_date:
+        if start_date == end_date:
+            raise ValueError("start date and end date is same,", "at least 1 day plz")
         try:
             # date reservatable validation
             formatter = lambda el: int(el) if el[0] is not "0" else int(el[1:])
@@ -34,22 +36,18 @@ def reservation_validation(queryset, start_date, end_date):
                 "start day could not be later than end date", "retype form data"
             )
         condition_date_1_1 = Q(reservations__start_date__lte=start_time)
-        condition_date_1_2 = Q(reservations__end_date__gte=start_time)
-        condition_date_2_1 = Q(reservations__start_date__lte=end_time)
+        condition_date_1_2 = Q(reservations__end_date__gt=start_time)
+        condition_date_2_1 = Q(reservations__start_date__lt=end_time)
         condition_date_2_2 = Q(reservations__end_date__gte=end_time)
-        queryset = queryset.filter(~(condition_date_1_1 & condition_date_1_2)).filter(
-            ~(condition_date_2_1 & condition_date_2_2)
-        )
+        queryset = queryset.filter(~Q(condition_date_1_1 & condition_date_1_2) & ~Q(condition_date_2_1 & condition_date_2_2))
         if not queryset:
             return queryset
-
         # stayable day validation
-        stay = end_time - start_time + timedelta(1)
+        stay = end_time - start_time
         min_stay = Q(min_stay__lte=stay.days)
         max_stay = Q(max_stay__gte=stay.days)
         queryset = queryset.filter(min_stay & max_stay)
     return queryset
-
 
 class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
     """A function, able to get, update detail of reservation.
