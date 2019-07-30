@@ -17,7 +17,7 @@ from reservations.serializers import (
 )
 
 
-def reservation_validation(queryset: QuerySet, start_date, end_date):
+def reservation_validation(queryset: QuerySet, start_date, end_date, pk=None):
     if start_date and end_date:
         try:
             # date reservatable validation
@@ -41,20 +41,25 @@ def reservation_validation(queryset: QuerySet, start_date, end_date):
         stay = end_time - start_time
         min_stay = Q(min_stay__lte=stay.days)
         max_stay = Q(max_stay__gte=stay.days)
-        queryset: QuerySet = queryset.filter(min_stay & max_stay)
 
         # stayable date validation
         condition_date_1_1 = Q(reservations__start_date__lte=start_time)
         condition_date_1_2 = Q(reservations__end_date__gt=start_time)
         condition_date_2_1 = Q(reservations__start_date__lt=end_time)
         condition_date_2_2 = Q(reservations__end_date__gte=end_time)
-        condition = Q()
-        condition.add(
-            ~(condition_date_1_1 & condition_date_1_2)
-            | ~(condition_date_2_1 & condition_date_2_2),
-            condition.AND,
+        condition_a = Q((condition_date_1_1 & condition_date_1_2))
+        condition_b = Q((condition_date_2_1 & condition_date_2_2))
+        condition_primary = Q(min_stay & max_stay)
+        if pk:
+            condition_primary = Q(Q(id=pk)&(min_stay & max_stay))
+        queryset = queryset.filter(
+            condition_primary
+            & (
+                Q(reservations=None)
+                | (~Q(reservations=None) & ~condition_a & ~condition_b)
+            )
         )
-        queryset.filter(condition)
+
     return queryset
 
 
@@ -152,8 +157,8 @@ class ReservationCreateView(generics.CreateAPIView):
     @response_error_handler
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
-        room = Room.objects.filter(id=self.kwargs.get("pk"))
-        stayables = reservation_validation(room, start_date, end_date)
+        pk=int(self.kwargs.get("pk"))
+        stayables = reservation_validation(Room.objects.all(), start_date, end_date, pk=pk)
         if stayables.count():
             return super().post(request, *args, **kwargs)
         else:
