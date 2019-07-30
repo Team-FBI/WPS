@@ -56,10 +56,12 @@ def reservation_validation(queryset: QuerySet, start_date, end_date):
         for room in queryset.all():
             if room.reservations.exists():
                 target = room.reservations
-                results = target.filter(condition_a&condition_b)
+                results = target.filter(condition_a|condition_b)
                 if results.exists():
                     excludes.add(room.id)
                     continue
+            else:
+                continue
         queryset = queryset.exclude(id__in=excludes)
     return queryset
 
