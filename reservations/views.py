@@ -144,8 +144,7 @@ class ReservationCreateView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
         room = Room.objects.filter(id=self.kwargs.get("pk"))
-
-        if reservation_validation(room, start_date, end_date):
+        if reservation_validation(room, start_date, end_date).count() == 1:
             return super().post(request, *args, **kwargs)
         raise ValueError("Date already reservated!", "check for another date.")
 
