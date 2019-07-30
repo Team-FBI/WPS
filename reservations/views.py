@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 
 from django.db.models import Q, Avg, QuerySet
 from rest_framework import generics
@@ -17,15 +17,17 @@ from reservations.serializers import (
 )
 
 
-def reservation_validation(queryset:QuerySet, start_date, end_date):
+def reservation_validation(queryset: QuerySet, start_date, end_date):
     if start_date and end_date:
-        if start_date == end_date:
-            raise ValueError("start date and end date is same,", "at least 1 day plz")
         try:
             # date reservatable validation
             formatter = lambda el: int(el) if el[0] is not "0" else int(el[1:])
-            start_time = datetime(*[v for v in map(formatter, start_date.split("-"))])
-            end_time = datetime(*[v for v in map(formatter, end_date.split("-"))])
+            start_time = date(*[v for v in map(formatter, start_date.split("-"))])
+            end_time = date(*[v for v in map(formatter, end_date.split("-"))])
+            if start_time == end_time:
+                raise ValueError(
+                    "start date and end date is same,", "at least 1 day plz"
+                )
 
         except Exception:
             raise ValueError(
@@ -39,15 +41,22 @@ def reservation_validation(queryset:QuerySet, start_date, end_date):
         stay = end_time - start_time
         min_stay = Q(min_stay__lte=stay.days)
         max_stay = Q(max_stay__gte=stay.days)
-        queryset:QuerySet = queryset.filter(min_stay & max_stay)
-        
+        queryset: QuerySet = queryset.filter(min_stay & max_stay)
+
         # stayable date validation
         condition_date_1_1 = Q(reservations__start_date__lte=start_time)
         condition_date_1_2 = Q(reservations__end_date__gt=start_time)
         condition_date_2_1 = Q(reservations__start_date__lt=end_time)
         condition_date_2_2 = Q(reservations__end_date__gte=end_time)
-        queryset = queryset.filter(Q(~Q(condition_date_1_1 & condition_date_1_2) & ~Q(condition_date_2_1 & condition_date_2_2)))
+        condition = Q()
+        condition.add(
+            ~(condition_date_1_1 & condition_date_1_2)
+            | ~(condition_date_2_1 & condition_date_2_2),
+            condition.AND,
+        )
+        queryset.filter(condition)
     return queryset
+
 
 class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
     """A function, able to get, update detail of reservation.
@@ -115,7 +124,7 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
         updates = dict()
         for key, val in totals.items():
             total += val
-            updates.setdefault(key[:-5] , round(val, 2))
+            updates.setdefault(key[:-5], round(val, 2))
 
         total = round(total / 6, 2)
         room.update(**updates, total_rating=total)
