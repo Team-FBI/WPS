@@ -49,7 +49,9 @@ def reservation_validation(queryset: QuerySet, start_date, end_date):
         condition_a = Q((condition_date_1_1 & condition_date_1_2))
         condition_b = Q((condition_date_2_1 & condition_date_2_2))
         condition_primary = Q(min_stay & max_stay)
-        queryset = queryset.filter(condition_primary)
+        queryset:QuerySet = queryset.filter(condition_primary)
+        if not queryset.count():
+            return queryset
         excludes = set()
         for data in queryset:
             if data.reservations.count() != 0:
@@ -57,6 +59,7 @@ def reservation_validation(queryset: QuerySet, start_date, end_date):
                 if results.count():
                     excludes.add(data.id)
                     continue
+        queryset = queryset.exclude(id__in=excludes)
     return queryset
 
 
