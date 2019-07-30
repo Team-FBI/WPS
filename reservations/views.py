@@ -42,12 +42,11 @@ def reservation_validation(queryset:QuerySet, start_date, end_date):
         queryset:QuerySet = queryset.filter(min_stay & max_stay)
         
         # stayable date validation
-        queryset = queryset.filter(~Q(reservations__contains=[start_time, endtime]))
-        # condition_date_1_1 = Q(reservations__start_date__lte=start_time)
-        # condition_date_1_2 = Q(reservations__end_date__gt=start_time)
-        # condition_date_2_1 = Q(reservations__start_date__lt=end_time)
-        # condition_date_2_2 = Q(reservations__end_date__gte=end_time)
-        # queryset = queryset.filter(Q(~Q(condition_date_1_1 & condition_date_1_2) & ~Q(condition_date_2_1 & condition_date_2_2)))
+        condition_date_1_1 = Q(reservations__start_date__lte=start_time)
+        condition_date_1_2 = Q(reservations__end_date__gt=start_time)
+        condition_date_2_1 = Q(reservations__start_date__lt=end_time)
+        condition_date_2_2 = Q(reservations__end_date__gte=end_time)
+        queryset = queryset.filter(Q(~Q(condition_date_1_1 & condition_date_1_2) & ~Q(condition_date_2_1 & condition_date_2_2)))
     return queryset
 
 class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):

@@ -21,12 +21,3 @@ class RoomReservation(models.Model):
     clean_score = models.PositiveSmallIntegerField(default=0)
     value_score = models.PositiveSmallIntegerField(default=0)
     is_active = models.BooleanField(default=True)
-
-    def __contains__(self, somedate):
-        start, end = somedate
-        #스타트 가 스타트와 엔드 사이에 있다
-        condition_a_1 = start >= self.start_date
-        condition_a_2 = start < self.end_date
-        condition_b_1 = end > self.start_date
-        condition_b_2 = end <= self.end_date
-        return (condition_a_1 and condition_a_2) or (condition_b_1 and condition_b_2)
