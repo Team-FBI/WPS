@@ -1,6 +1,12 @@
-from django.urls import path
-from .views import view_room
+from django.urls import path, include
+from rest_framework.routers import SimpleRouter
+from .views import MessageCreateView,  ReservationViewSet
+
+router = SimpleRouter()
+router.register('', ReservationViewSet)
 
 urlpatterns = [
-    path('<slug:room_name>', view_room, name='room'),
+    path('<int:pk>/message/', MessageCreateView.as_view()),
+    path('', include(router.urls)),
 ]
+
