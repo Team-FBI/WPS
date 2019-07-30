@@ -50,14 +50,15 @@ def reservation_validation(queryset: QuerySet, start_date, end_date):
         condition_b = Q((condition_date_2_1 & condition_date_2_2))
         condition_primary = Q(min_stay & max_stay)
         queryset:QuerySet = queryset.filter(condition_primary)
-        if not queryset.count():
+        if not queryset.exists():
             return queryset
         excludes = set()
-        for data in queryset.all():
-            if data.reservations.count() != 0:
-                results = data.reservations.filter(~condition_a&~condition_b)
-                if results.count():
-                    excludes.add(data.id)
+        for room in queryset.all():
+            if room.reservations.exists():
+                target = room.reservations
+                results = target.filter(condition_a&condition_b)
+                if results.exists():
+                    excludes.add(room.id)
                     continue
         queryset = queryset.exclude(id__in=excludes)
     return queryset
@@ -159,7 +160,7 @@ class ReservationCreateView(generics.CreateAPIView):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
         pk=int(self.kwargs.get("pk"))
         stayables = reservation_validation(Room.objects.all(), start_date, end_date)
-        if stayables.count():
+        if Room.objects.get(id=pk) in stayables:
             return super().post(request, *args, **kwargs)
         else:
             raise ValueError("Date already reservated!", "check for another date.")
