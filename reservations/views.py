@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from django.db.models import Q, Avg
+from django.db.models import Q, Avg, QuerySet
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -17,7 +17,7 @@ from reservations.serializers import (
 )
 
 
-def reservation_validation(queryset, start_date, end_date):
+def reservation_validation(queryset:QuerySet, start_date, end_date):
     if start_date and end_date:
         if start_date == end_date:
             raise ValueError("start date and end date is same,", "at least 1 day plz")
@@ -35,18 +35,19 @@ def reservation_validation(queryset, start_date, end_date):
             raise ValueError(
                 "start day could not be later than end date", "retype form data"
             )
-        condition_date_1_1 = Q(reservations__start_date__lte=start_time)
-        condition_date_1_2 = Q(reservations__end_date__gt=start_time)
-        condition_date_2_1 = Q(reservations__start_date__lt=end_time)
-        condition_date_2_2 = Q(reservations__end_date__gte=end_time)
-        queryset = queryset.filter(Q(~Q(condition_date_1_1 & condition_date_1_2)|~Q(condition_date_2_1 & condition_date_2_2)))
-        if not queryset:
-            return queryset
         # stayable day validation
         stay = end_time - start_time
         min_stay = Q(min_stay__lte=stay.days)
         max_stay = Q(max_stay__gte=stay.days)
-        queryset = queryset.filter(min_stay & max_stay)
+        queryset:QuerySet = queryset.filter(min_stay & max_stay)
+        
+        # stayable date validation
+        queryset = queryset.filter(~Q(reservations__contains=[start_time, endtime]))
+        # condition_date_1_1 = Q(reservations__start_date__lte=start_time)
+        # condition_date_1_2 = Q(reservations__end_date__gt=start_time)
+        # condition_date_2_1 = Q(reservations__start_date__lt=end_time)
+        # condition_date_2_2 = Q(reservations__end_date__gte=end_time)
+        # queryset = queryset.filter(Q(~Q(condition_date_1_1 & condition_date_1_2) & ~Q(condition_date_2_1 & condition_date_2_2)))
     return queryset
 
 class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
@@ -144,7 +145,9 @@ class ReservationCreateView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
         room = Room.objects.filter(id=self.kwargs.get("pk"))
-        if reservation_validation(room, start_date, end_date).count() == 1:
+        stayables = reservation_validation(room, start_date, end_date)
+        if stayables.count():
             return super().post(request, *args, **kwargs)
-        raise ValueError("Date already reservated!", "check for another date.")
+        else:
+            raise ValueError("Date already reservated!", "check for another date.")
 
