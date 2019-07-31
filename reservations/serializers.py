@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from reservations.models import RoomReservation
 from rooms.models import Room
+from chat.models import Message
+
 
 class ReservationDetailSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
@@ -14,16 +16,22 @@ class ReservationDetailSerializer(serializers.ModelSerializer):
 
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
+    messages = serializers.CharField(write_only=True)
+
     class Meta:
         model = RoomReservation
-        fields = ["start_date", "end_date"]
+        fields = ["start_date", "end_date", "messages"]
 
     def create(self, validated_data):
         validated_data["user"] = self.context.get("view").request.user
         validated_data["room"] = Room.objects.get(
             id=self.context.get("view").kwargs.get("pk")
         )
-        return super().create(validated_data)
+        text = validated_data.pop("messages")
+        reservation = super().create(validated_data)
+        Message.objects.create(author=validated_data["user"], reservation=reservation,
+                               text=text)
+        return reservation
 
 
 class ReservationUpdateSerializer(serializers.ModelSerializer):
@@ -38,8 +46,6 @@ class ReservationUpdateSerializer(serializers.ModelSerializer):
         for score in scores:
             if score > 5 or score < 0:
                 raise ValueError("score should be in 0~5 in integer", "and no digits!")
-        instance.is_active=False
+        instance.is_active = False
         instance.save()
         return super().update(instance, validated_data)
-
-
