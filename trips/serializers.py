@@ -1,7 +1,7 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import *
 from locations.models import State
+
 
 class RecommendTrip(serializers.HyperlinkedModelSerializer):
     """
@@ -64,18 +64,6 @@ class TripCategoryOnly(serializers.HyperlinkedModelSerializer):
 
         )
 
-
-# class TripSeoulCategoryOnly(serializers.HyperlinkedModelSerializer):
-#     """
-#     메인페이지의 서울 인기 트립을 나타냄
-#     원래는 위치기반으로 나타내야 하지만 구현 편의 상 서울의 트립으로 고정
-#     """
-#
-#     class Meta:
-#         model = Trip
-#         fields = (
-#
-#         )
 
 class TripCategorySerializer(serializers.HyperlinkedModelSerializer):
     trips = TripCategoryOnly(many=True)
@@ -208,52 +196,3 @@ class TripReservationCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["user_set"] = self.context.get("view").request.user
         return super().create(validated_data)
-
-#
-#
-# class ScoreSerializer(serializers.HyperlinkedModelSerializer):
-#     game = GameSerializer()
-#
-#     class Meta:
-#         model = PlayerScore
-#         fields = (
-#             "url",
-#             "pk",
-#             "score",
-#             "score_date",
-#             "game",
-#         )
-#
-#
-# class PlayerSerializer(serializers.HyperlinkedModelSerializer):
-#     scores = ScoreSerializer(many=True, read_only=True)
-#     gender = serializers.ChoiceField(
-#         choices=Player.GENDER_CHOICES
-#     )
-#     gender_description = serializers.CharField(source="get_gender_display", read_only=True)
-#
-#     class Meta:
-#         model = Player
-#         fields = (
-#             "url",
-#             "name",
-#             "gender",
-#             "gender_description",
-#             "scores",
-#         )
-#
-#
-# class PlayerScoreSerializer(serializers.ModelSerializer):
-#     player = serializers.SlugRelatedField(queryset=Player.objects.all(), slug_field="name")
-#     game = serializers.SlugRelatedField(queryset=Game.objects.all(), slug_field="name")
-#
-#     class Meta:
-#         model = PlayerScore
-#         fields = (
-#             "url",
-#             "pk",
-#             "score",
-#             "score_date",
-#             "player",
-#             "game",
-#         )
