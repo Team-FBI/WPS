@@ -32,7 +32,6 @@ class TripStateSerializer(serializers.HyperlinkedModelSerializer):
         fields = (
             "url",
             "name",
-            "image",
             "trips",
         )
 
