@@ -30,12 +30,12 @@ class StateDetail(generics.RetrieveUpdateDestroyAPIView):
         trip_queryset = Trip.objects.all().filter(state_id=filter_kwargs["pk"])
         max_id = trip_queryset.count()
         # random_queryset = Trip.objects.none()
-        while True:
-            random_index = random.randint(0, max_id)
-            random_queryset = trip_queryset[random_index:random_index + 1]
-            if random_queryset.count() == 1:
-                break
-        return random_queryset
+        # while True:
+        #     random_index = random.randint(0, max_id)
+        #     random_queryset = trip_queryset[random_index:random_index + 1]
+        #     if random_queryset.count() == 1:
+        #         break
+        return trip_queryset
 
     def get_best_trip_queryset(self):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
