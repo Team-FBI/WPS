@@ -9,7 +9,7 @@ import random
 
 class StateList(generics.ListCreateAPIView):
     queryset = State.objects.all()
-    serializer_class = StateSerializer
+    serializer_class = TripStateSerializer
     name = "state-list"
 
 
@@ -112,7 +112,7 @@ class TripCategoryList(generics.ListCreateAPIView):
     queryset = TripCategory.objects.all()
     serializer_class = TripCategorySerializer
     state_queryset = State.objects.all()
-    state_serializer_class = StateSerializer
+    state_serializer_class = TripStateSerializer
     name = 'tripcategory-list'
 
     def get_state_queryset(self):
@@ -160,7 +160,7 @@ class TripCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = TripCategory.objects.all()
     serializer_class = TripCategorySerializer
     state_queryset = State.objects.all()
-    state_serializer_class = StateSerializer
+    state_serializer_class = TripStateSerializer
     name = 'tripcategory-detail'
 
     def get_state_queryset(self):

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import *
-
+from locations.models import State
 
 class RecommendTrip(serializers.HyperlinkedModelSerializer):
     """
@@ -24,7 +24,7 @@ class RecommendTrip(serializers.HyperlinkedModelSerializer):
         )
 
 
-class StateSerializer(serializers.HyperlinkedModelSerializer):
+class TripStateSerializer(serializers.HyperlinkedModelSerializer):
     trips = RecommendTrip(read_only=True)
 
     class Meta:

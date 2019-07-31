@@ -2,16 +2,9 @@ from django.db import models
 from datetime import timedelta
 from .options import *
 from django.contrib.auth import get_user_model
+from locations.models import State
 
 User = get_user_model()
-
-
-class State(models.Model):
-    name = models.CharField(max_length=200, unique=True)
-    image = models.ImageField(blank=True)
-
-    def __str__(self):
-        return self.name
 
 
 class Provide(models.Model):
