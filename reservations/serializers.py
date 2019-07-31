@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from reservations.models import RoomReservation
-from rooms.models import Room
-from chat.models import Message
 
 
 class ReservationDetailSerializer(serializers.ModelSerializer):
@@ -16,21 +14,19 @@ class ReservationDetailSerializer(serializers.ModelSerializer):
 
 
 class ReservationCreateSerializer(serializers.ModelSerializer):
-    messages = serializers.CharField(write_only=True)
+    message = serializers.CharField(write_only=True)
 
     class Meta:
         model = RoomReservation
-        fields = ["start_date", "end_date", "messages"]
+        fields = ["start_date", "end_date", "message"]
 
     def create(self, validated_data):
-        validated_data["user"] = self.context.get("view").request.user
-        validated_data["room"] = Room.objects.get(
-            id=self.context.get("view").kwargs.get("pk")
-        )
-        text = validated_data.pop("messages")
+        message = validated_data.pop('message')
         reservation = super().create(validated_data)
-        Message.objects.create(author=validated_data["user"], reservation=reservation,
-                               text=text)
+        reservation.messages.create(
+            author=reservation.user,
+            text=message,
+        )
         return reservation
 
 

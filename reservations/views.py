@@ -1,8 +1,9 @@
-from datetime import date, timedelta
+from datetime import date
 
 from django.db.models import Q, Avg, QuerySet
 from rest_framework import generics
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from config.utils import response_error_handler
@@ -49,14 +50,14 @@ def reservation_validation(queryset: QuerySet, start_date, end_date):
         condition_a = Q((condition_date_1_1 & condition_date_1_2))
         condition_b = Q((condition_date_2_1 & condition_date_2_2))
         condition_primary = Q(min_stay & max_stay)
-        queryset:QuerySet = queryset.filter(condition_primary)
+        queryset: QuerySet = queryset.filter(condition_primary)
         if not queryset.exists():
             return queryset
         excludes = set()
         for room in queryset.all():
             if room.reservations.exists():
                 target = room.reservations
-                results = target.filter(condition_a|condition_b)
+                results = target.filter(condition_a | condition_b)
                 if results.exists():
                     excludes.add(room.id)
                     continue
@@ -98,8 +99,8 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
     @response_error_handler
     def get(self, request, *args, **kwargs):
         if request.user.id in (
-            self.get_queryset()[0].user.id,
-            self.get_queryset()[0].room.host.id,
+                self.get_queryset()[0].user.id,
+                self.get_queryset()[0].room.host.id,
         ):
             return super().get(request, *args, **kwargs)
         raise PermissionError(
@@ -157,13 +158,19 @@ class ReservationCreateView(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = RoomReservation.objects.all()
 
+    def perform_create(self, serializer):
+        room = get_object_or_404(Room, pk=self.kwargs.get('pk'))
+        serializer.save(
+            user=self.request.user,
+            room=room,
+        )
+
     @response_error_handler
     def post(self, request, *args, **kwargs):
         start_date, end_date = request.data["start_date"], request.data["end_date"]
-        pk=int(self.kwargs.get("pk"))
+        pk = int(self.kwargs.get("pk"))
         stayables = reservation_validation(Room.objects.all(), start_date, end_date)
         if Room.objects.get(id=pk) in stayables:
             return super().post(request, *args, **kwargs)
         else:
             raise ValueError("Date already reservated!", "check for another date.")
-
