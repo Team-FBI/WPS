@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "reservations.apps.ReservationsConfig",
     "corsheaders",
+    "trips.apps.TripsConfig",
 ]
 
 MIDDLEWARE = [
