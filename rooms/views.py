@@ -16,6 +16,7 @@ from rooms.filter_backends import (
     CapacityFilterBackend,
     DateFilterBackend,
     PriceFilterBackend,
+    RatingFilterBackend
 )
 from reservations.views import reservation_validation
 from config.utils import response_error_handler
@@ -46,7 +47,8 @@ class RoomListView(generics.ListAPIView):
         min_price -- [default All, filter price greater than input]
         max_price -- [default All, filter price lower than input]
         start_date, end_date -- [default None, filter date reservable, format as year-month-day]
-        capacity -- [default All, filter capacity equal or larger that input]
+        capacity -- [default All, filter capacity equal or larger than input]
+        rating -- [default All, filter total_rating equal or larger than input]
     Raises:
         AttributeError: [GET-HTTP_400_BAD_REQUEST]
     Returns:
@@ -54,7 +56,7 @@ class RoomListView(generics.ListAPIView):
 
     - POST(create)
     A function, able to Post and register new Room
-    
+
     Arguments:
         viewsets {[CreateAPIView]} -- [POST, handler]
     
@@ -74,8 +76,9 @@ class RoomListView(generics.ListAPIView):
         PriceFilterBackend,
         DateFilterBackend,
         CapacityFilterBackend,
+        RatingFilterBackend,
     ]
-    filterset_fields = ["start_date", "end_date", "min_price", "max_price", "capacity"]
+    filterset_fields = ["start_date", "end_date", "min_price", "max_price", "capacity", "rating"]
     search_fields = ["=state__name", "=state__country__name", "^host__username"]
     ordering_fields = ["price", "created_at", "updated_at", "total_rating"]
     ordering = ["updated_at"]

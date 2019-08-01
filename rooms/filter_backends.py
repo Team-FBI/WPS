@@ -10,7 +10,6 @@ class CapacityFilterBackend(filters.BaseFilterBackend):
             queryset = queryset.filter(capacity__gte=capacity)
         return queryset
 
-
 class DateFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         start_date = request.query_params.get("start_date", None)
@@ -30,3 +29,9 @@ class PriceFilterBackend(filters.BaseFilterBackend):
         condition_max = Q(price__lte=max_price)
         return queryset.filter(condition_min & condition_max)
 
+class RatingFilterBackend(filters.BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        rating = request.query_params.get("rating", None)
+        if rating:
+            return queryset.filter(Q(total_rating__gte=4))
+        return queryset
