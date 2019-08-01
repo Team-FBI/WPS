@@ -33,5 +33,5 @@ class RatingFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         rating = request.query_params.get("rating", None)
         if rating:
-            return queryset.filter(Q(total_rating__gte=4))
+            return queryset.filter(Q(total_rating__gte=int(rating)))
         return queryset
