@@ -9,8 +9,6 @@ class RecommendTrip(serializers.HyperlinkedModelSerializer):
     표시사항: 이름, 사진, 평점(평점갯수)
     """
 
-    # provides = serializers.StringRelatedField(many=True)
-
     class Meta:
         model = Trip
         fields = (
@@ -18,25 +16,22 @@ class RecommendTrip(serializers.HyperlinkedModelSerializer):
             "image_1",
             "rating_score",
             "duration_time",
-            # "provides",
-            # "url",
 
         )
 
 
 class TripStateSerializer(serializers.HyperlinkedModelSerializer):
-    trips = RecommendTrip(read_only=True)
-
     class Meta:
         model = State
         fields = (
-            "url",
             "name",
-            "trips",
+            "url",
+            "pk",
         )
 
 
 class TripProvideSerializer(serializers.ModelSerializer):
+    provide_set = serializers.SlugRelatedField(queryset=State.objects.all(), slug_field="name")
 
     class Meta:
         model = TripProvide
@@ -66,16 +61,17 @@ class TripCategoryOnly(serializers.HyperlinkedModelSerializer):
 
 
 class TripCategorySerializer(serializers.HyperlinkedModelSerializer):
-    trips = TripCategoryOnly(many=True)
+    """
+    메인 페이지의 카테고리 분류
+    """
 
     class Meta:
         model = TripCategory
         fields = (
-            "url",
-            "pk",
+
             "name",
+            "image",
             "description",
-            "trips",
 
         )
 
@@ -86,10 +82,6 @@ class TripReviewSerializer(serializers.ModelSerializer):
         fields = (
             "__all__"
         )
-
-    def create(self, validated_data):
-        validated_data["user_set"] = self.context.get("view").request.user
-        return super().create(validated_data)
 
 
 class TripReviewDetailOnlySerializer(serializers.ModelSerializer):
@@ -103,10 +95,6 @@ class TripReviewDetailOnlySerializer(serializers.ModelSerializer):
             "rating_score",
             "created_at",
         )
-
-    def create(self, validated_data):
-        validated_data["user_set"] = self.context.get("view").request.user
-        return super().create(validated_data)
 
 
 class TripScheduleSerializer(serializers.ModelSerializer):
@@ -122,20 +110,66 @@ class TripScheduleSerializer(serializers.ModelSerializer):
         )
 
 
+class TripListSerializer(serializers.HyperlinkedModelSerializer):
+    provides = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Trip
+        fields = (
+            "name",
+            "image_1",
+            "rating_score",
+            "duration_time",
+            "provides",
+            "url",
+        )
+
+
 class TripSerializer(serializers.HyperlinkedModelSerializer):
     host = serializers.ReadOnlyField(source='host.username')
-    trip_category = serializers.SlugRelatedField(queryset=TripCategory.objects.all(), slug_field="name")
+    sub_category = serializers.SlugRelatedField(queryset=SubTripCategory.objects.all(), slug_field="name")
     compatibility = serializers.ChoiceField(source="get_compatibility_display", choices=COMPATIBILITY)
     technic = serializers.ChoiceField(source="get_technic_display", choices=BEGINNER)
     strength = serializers.ChoiceField(source="get_strength_display", choices=LIGHT)
     trip_reviews = TripReviewDetailOnlySerializer(many=True)
     schedules = TripScheduleSerializer(many=True, source="trip_active")
     provides = TripProvideSerializer(many=True)
+    state = serializers.SlugRelatedField(queryset=State.objects.all(), slug_field="name")
 
     class Meta:
         model = Trip
         fields = (
-            "__all__"
+            "pk",
+            "name",
+            "sub_category",
+            "state",
+            "duration_time",
+            "provides",
+            "schedules",
+            "trip_reviews",
+            "host",
+            "host_about",
+            "program",
+            "additional_condition",
+            "guest_material",
+            "address",
+            "place_info",
+            "min_age",
+            "max_guest",
+            "certification",
+            "price",
+            "rating_score",
+            "compatibility",
+            "strength",
+            "technic",
+            "image_1",
+            "image_2",
+            "image_3",
+            "image_4",
+            "image_5",
+            "image_6",
+            "image_7",
+
         )
 
     # def create(self, validated_data):
@@ -189,6 +223,7 @@ class TestSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class TripReservationCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Reservation
         fields = "__all__"

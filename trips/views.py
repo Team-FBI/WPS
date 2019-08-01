@@ -34,7 +34,7 @@ class StateDetail(generics.RetrieveUpdateDestroyAPIView):
         #     random_index = random.randint(0, max_id)
         #     random_queryset = trip_queryset[random_index:random_index + 1]
         #     if random_queryset.count() == 1:
-        #         break
+        #         break order_by("?)
         return trip_queryset
 
     def get_best_trip_queryset(self):
@@ -108,15 +108,24 @@ class StateDetail(generics.RetrieveUpdateDestroyAPIView):
         return Response(context)
 
 
-class TripCategoryList(generics.ListCreateAPIView):
+class TripMain(generics.ListCreateAPIView):
+    """
+    트립의 메인 페이지 정보
+    main_categories : 어드벤쳐, 식도락여행, 역사투어, 쿠킹 클래스, 착한 드립 5개의 메인 대분류 코테고리 분류.
+    global_recommend_trip : 전체 트립 목록 중 임의의 13개 트립 제공.
+    -> 미제공 사항 : 트립의 리뷰카운터, 진행언어 - > 추후 업데이트
+    state : trip데이터가 존재하는 state 8개 state의 이미지는 별도로 셋팅 부탁 드립니다.
+    """
     queryset = TripCategory.objects.all()
     serializer_class = TripCategorySerializer
     state_queryset = State.objects.all()
     state_serializer_class = TripStateSerializer
-    name = 'tripcategory-list'
+    global_trip_queryset = Trip.objects.all()
+    global_trip_serializer_class = TripCategoryOnly
+    name = 'trip-main'
 
     def get_state_queryset(self):
-        return State.objects.all()
+        return State.objects.filter(trips__isnull=False)[:8]
 
     def get_state_serializer_class(self):
         assert self.state_serializer_class is not None, (
@@ -139,21 +148,61 @@ class TripCategoryList(generics.ListCreateAPIView):
         kwargs['context'] = self.get_state_serializer_context()
         return state_serializer_class(*args, **kwargs)
 
+    # 여기서 부터 글로벌 트립
+    def get_global_trip_queryset(self):
+        return Trip.objects.all().order_by("?")[:13]
+
+    def get_global_trip_serializer_class(self):
+        assert self.global_trip_serializer_class is not None, (
+                "'%s' should either include a `serializer_class` attribute, "
+                "or override the `get_serializer_class()` method."
+                % self.__class__.__name__
+        )
+
+        return self.global_trip_serializer_class
+
+    def get_global_trip_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
+    def get_global_trip_serializer(self, *args, **kwargs):
+        global_trip_serializer_class = self.get_global_trip_serializer_class()
+        kwargs['context'] = self.get_state_serializer_context()
+        return global_trip_serializer_class(*args, **kwargs)
+
     def list(self, request, *args, **kwargs):
         response = super().list(request, args, kwargs)
+        # 지역에 관한 스테이트
         queryset = self.filter_queryset(self.get_state_queryset())
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_state_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
         serializer = self.get_state_serializer(queryset, many=True)
+        # 여기서 부터 글로벌 트립
+        queryset2 = self.filter_queryset(self.get_global_trip_queryset())
+        serializer2 = self.get_global_trip_serializer(queryset2, many=True)
+
         context = {
-            "categories": response.data,
+            "main_categories": response.data,
+            "global_recommend_trip": serializer2.data,
             "state": serializer.data,
 
         }
         return Response(context)
+
+
+class TripCategoryList(generics.ListCreateAPIView):
+    """
+    trip/trip-category/<int:pk>/ pk에 정수를 넣어서 카테고리 상세조회 가능.
+    그러나 대분류 카테고리별을 하지 않기로 하였으니 대분류 디테일 조회 기능은 사용하지 않을 듯 합니다.
+    카테고리에서 제공하는 필드값은 list, detail 뷰 동일함.
+    name : 대분류 카테고리 이름
+    image : 대분류 이미지 사진 한장
+    description : 대분류 카테고리에 해당 하는 설명
+    """
+    queryset = TripCategory.objects.all()
+    serializer_class = TripCategorySerializer
+    name = 'tripcategory-list'
 
 
 class TripCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -163,76 +212,126 @@ class TripCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     state_serializer_class = TripStateSerializer
     name = 'tripcategory-detail'
 
-    def get_state_queryset(self):
-        return State.objects.all()
+    # def get_state_queryset(self):
+    #     return State.objects.all()
+    #
+    # def get_state_serializer_class(self):
+    #     assert self.state_serializer_class is not None, (
+    #             "'%s' should either include a `serializer_class` attribute, "
+    #             "or override the `get_serializer_class()` method."
+    #             % self.__class__.__name__
+    #     )
+    #
+    #     return self.state_serializer_class
+    #
+    # def get_state_serializer_context(self):
+    #     return {
+    #         'request': self.request,
+    #         'format': self.format_kwarg,
+    #         'view': self
+    #     }
+    #
+    # def get_state_serializer(self, *args, **kwargs):
+    #     state_serializer_class = self.get_state_serializer_class()
+    #     kwargs['context'] = self.get_state_serializer_context()
+    #     return state_serializer_class(*args, **kwargs)
+    #
+    # def get_state_object(self):
+    #     queryset = self.filter_queryset(self.get_state_queryset())
+    #
+    #     # Perform the lookup filtering.
+    #     lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+    #
+    #     assert lookup_url_kwarg in self.kwargs, (
+    #             'Expected view %s to be called with a URL keyword argument '
+    #             'named "%s". Fix your URL conf, or set the `.lookup_field` '
+    #             'attribute on the view correctly.' %
+    #             (self.__class__.__name__, lookup_url_kwarg)
+    #     )
+    #
+    #     filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+    #     obj = get_object_or_404(queryset, **filter_kwargs)
+    #
+    #     # May raise a permission denied
+    #     self.check_object_permissions(self.request, obj)
+    #
+    #     return obj
 
-    def get_state_serializer_class(self):
-        assert self.state_serializer_class is not None, (
-                "'%s' should either include a `serializer_class` attribute, "
-                "or override the `get_serializer_class()` method."
-                % self.__class__.__name__
-        )
-
-        return self.state_serializer_class
-
-    def get_state_serializer_context(self):
-        return {
-            'request': self.request,
-            'format': self.format_kwarg,
-            'view': self
-        }
-
-    def get_state_serializer(self, *args, **kwargs):
-        state_serializer_class = self.get_state_serializer_class()
-        kwargs['context'] = self.get_state_serializer_context()
-        return state_serializer_class(*args, **kwargs)
-
-    def get_state_object(self):
-        queryset = self.filter_queryset(self.get_state_queryset())
-
-        # Perform the lookup filtering.
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-
-        assert lookup_url_kwarg in self.kwargs, (
-                'Expected view %s to be called with a URL keyword argument '
-                'named "%s". Fix your URL conf, or set the `.lookup_field` '
-                'attribute on the view correctly.' %
-                (self.__class__.__name__, lookup_url_kwarg)
-        )
-
-        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        obj = get_object_or_404(queryset, **filter_kwargs)
-
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-
-        return obj
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance2 = self.get_state_object()
-        serializer = self.get_serializer(instance)
-        serializer2 = self.get_state_serializer(instance2)
-        context = {
-            "serializer": serializer.data,
-            "serializer2": serializer2.data,
-        }
-        return Response(context)
+    # def retrieve(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     # instance2 = self.get_state_object()
+    #     serializer = self.get_serializer(instance)
+    #     # serializer2 = self.get_state_serializer(instance2)
+    #     # context = {
+    #     #     "serializer": serializer.data,
+    #     #     # "serializer2": serializer2.data,
+    #     # }
+    #     return Response(serializer.data)
 
 
 class TripList(generics.ListCreateAPIView):
+    """
+    전체 트립 리스트를 제공
+    trip/<int:pk>/ 정수 제공시 트립의 뷰로 이동
+    ***미제공 사항 리뷰카운터, 진행언어
+    name : 트립의 제목
+    image_1 : 대표 이미지
+    duration_time : 트립의 진행시간
+    provides : 트립에서 제공 하는 것
+    url : 상세페이지 url 아이디값을 포함하고 있음.
+    """
     queryset = Trip.objects.all()
-    serializer_class = TripSerializer
+    serializer_class = TripListSerializer
     name = 'trip-list'
 
 
 class TripDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    트립의 상세페이지
+    앱에서 보이는 순서대로 정렬 하여 제공.
+    "name" : 트립의 제목
+    "sub_category : 대분류 카테고리:어드벤쳐 - > 서브 카테고리: 파리의 어드벤처 <지역이 붙은 소분류 카테고리
+    "state" : 지역
+    "duration_time" : 진행시간
+    "provides", : 제공 항목
+    "schedules", : 예약 가능한 스케줄
+    "trip_reviews" : 현재 트립의 리뷰
+    "host" : 호스트 이름
+    "host_about" : 호스트 소개
+    "program" : 프로그램에 관한 설명
+    "additional_condition" : 추가 조건에 관한 텍스틔 필드
+    "guest_material" : 게스트 준비물
+    "address" : 지도 검색을 위한 주소
+    "place_info" : 장소에 관한 설명
+    "min_age" : 최소 나이 조건
+    "max_guest" : 최대 수용인원
+    "certification" : 신분증 지참여부 True-필요 False-불필요
+    "price" : 1인당 가격
+    "rating_score" : 트립의 총 리뷰 점수 평균
+    "compatibility" : 장애인 이용 가능 여부
+    "strength" : 트립의 강도
+    "technic" : 트립을 즐기는데 필요한 테크닉의 정도
+    "image_1",
+    "image_2",
+    "image_3",
+    "image_4",
+    "image_5",
+    "image_6",
+    "image_7",
+    """
     queryset = Trip.objects.all()
     serializer_class = TripSerializer
     name = 'trip-detail'
 
 
 class TripReservationCreate(generics.ListCreateAPIView):
+    """
+    POST
+    "guest_count": 예약 할 인원수
+    "total_price": 토탈 가격
+    "trip_set": 트립 아이디
+    "trip_schedule": 트립의 스케줄 아이디
+    """
     queryset = Reservation.objects.all()
     serializer_class = TripReservationCreateSerializer
     name = "trip-reservation-create"
@@ -286,6 +385,14 @@ class TripReviewCreate(generics.ListCreateAPIView):
     name = "trip-review"
 
 
+class TripScheduleList(generics.ListCreateAPIView):
+    """
+    capacity - now_guest_count 를 빼서
+    사용자에게 현재 예약 가능 인원을 제공해주시면 됩니다.
+    """
+    queryset = TripSchedule.objects.all()
+    serializer_class = TripScheduleSerializer
+    name = "trip-schedule-list"
 
     # def
 
@@ -327,15 +434,28 @@ class TripReviewCreate(generics.ListCreateAPIView):
 
 
 class ApiRoot(generics.GenericAPIView):
+    """
+    트립 API 상세 설명
+    main/ - > 트립의 메인페이지 구성을 위한 전체 요소
+    trip-category - > 트립의 대분류 카테고리 목록
+    trip-category/int/ - > 트립의 대분류 카테고리 상세뷰
+    trips/ -> 트립의 전체 목록
+    trips/int/ -> 트립의 상세뷰
+    schedule/ -> 트립의 스케줄 리스트
+
+
+   """
     name = 'api-root'
 
     def get(self, request, *args, **kwargs):
         return Response({
             # 'players': reverse(PlayerList.name, request=request),
+            'main': reverse(TripMain.name, request=request),
             'trip-category': reverse(TripCategoryList.name, request=request),
-            'trip': reverse(TripList.name, request=request),
-            "trip/reservation": reverse(TripReservationCreate.name, request=request),
-            "trip/state": reverse(StateList.name, request=request),
-            "trip/review": reverse(TripReviewCreate.name, request=request)
+            'trips': reverse(TripList.name, request=request),
+            'schedule': reverse(TripScheduleList.name, request=request),
+            "reservation": reverse(TripReservationCreate.name, request=request),
+            "state": reverse(StateList.name, request=request),
+            "review": reverse(TripReviewCreate.name, request=request)
 
         })

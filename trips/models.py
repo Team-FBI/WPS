@@ -25,6 +25,7 @@ class TripProvide(models.Model):
 
 class TripCategory(models.Model):
     name = models.CharField(max_length=200, unique=True)
+    image = models.ImageField(blank=True)
     description = models.CharField(max_length=250)
 
     class Meta:
@@ -43,16 +44,14 @@ class SubTripCategory(models.Model):
     image_3 = models.ImageField(blank=True)
     description = models.CharField(max_length=200)
 
+    def __str__(self):
+        return f"{self.state}-{self.name}"
 
 class Trip(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trips")
     # 트립 제목
     name = models.CharField(max_length=200)
-    trip_category = models.ForeignKey(
-        TripCategory,
-        on_delete=models.CASCADE,
-        related_name="trips"
-    )
+    sub_category = models.ForeignKey(SubTripCategory, on_delete=models.CASCADE, related_name="trips")
     state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="trips")
     duration_time = models.SmallIntegerField(default=2)
     host_about = models.TextField(default="게스트에게 자기 소개와 함께 트립 진행에 있어 나만의 특별함을 알려주세요.")
@@ -71,12 +70,12 @@ class Trip(models.Model):
     compatibility = models.CharField(max_length=100, choices=COMPATIBILITY, default=YES)
     strength = models.CharField(max_length=100, choices=STRENGTH, default=LIGHT)
     technic = models.CharField(max_length=100, choices=TECHNIC, default=BEGINNER)
-    additional_contition = models.TextField(max_length=250, default="추가 요건(선택 사항)")
+    additional_condition = models.TextField(max_length=250, default="추가 요건(선택 사항)")
     # 신분증 지참 여부
     certification = models.BooleanField(default=False)
     max_guest = models.SmallIntegerField(choices=MAX_GUEST, default=4)
     price = models.IntegerField(default=30000)
-    rating_score = models.FloatField(default=0.0)
+    rating_score = models.FloatField(default=0)
 
     def trip_active(self):
         return TripSchedule.objects.filter(active=True)
