@@ -136,6 +136,13 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     state = serializers.SerializerMethodField()
     label = serializers.SerializerMethodField()
     super_host = serializers.SerializerMethodField()
+    reviews = serializers.SerializerMethodField()
+
+    def get_reviews(self, obj):
+        reviews = obj.reservations.all()
+        reviews = reviews.order_by("start_date")
+        return [[review.user.username, review.user.image.url, review.description] for review in reviews if review.description is not None]
+
 
     def get_facilities(self, obj):
         facilities = obj.facilities.all()
@@ -216,4 +223,5 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "clean_score",
             "value_score",
             "super_host",
+            "reviews",
         ]
