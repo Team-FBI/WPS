@@ -36,7 +36,7 @@ class RoomListSerializer(serializers.ModelSerializer):
 
     def get_label(self, obj):
         result = None
-        if obj.image_6.url:
+        if int(obj.total_rating) >= 4:
             result = "plus"
         if obj.host.is_staff:
             result = "luxe"
@@ -162,7 +162,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
 
     def get_label(self, obj):
         result = None
-        if obj.image_6.url:
+        if int(obj.total_rating) >= 4:
             result = "plus"
         if obj.host.is_staff:
             result = "luxe"
