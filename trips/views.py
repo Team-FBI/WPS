@@ -125,7 +125,9 @@ class TripMain(generics.ListCreateAPIView):
     name = 'trip-main'
 
     def get_state_queryset(self):
-        return State.objects.filter(trips__isnull=False)[:8]
+        state = State.objects.all()
+        result = [y for y in state if y.trips.exists()]
+        return result
 
     def get_state_serializer_class(self):
         assert self.state_serializer_class is not None, (
