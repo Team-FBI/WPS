@@ -26,8 +26,7 @@ class StateDetail(generics.RetrieveUpdateDestroyAPIView):
     def get_trip_queryset(self):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        # return Trip.objects.all().filter(state_id=filter_kwargs["pk"])[:13]
-        trip_queryset = Trip.objects.all().filter(state_id=filter_kwargs["pk"])
+        trip_queryset = Trip.objects.all().filter(state_id=filter_kwargs["pk"]).order_by("?")[:13]
         max_id = trip_queryset.count()
         # random_queryset = Trip.objects.none()
         # while True:
@@ -125,9 +124,8 @@ class TripMain(generics.ListCreateAPIView):
     name = 'trip-main'
 
     def get_state_queryset(self):
-        state = State.objects.all()
-        result = [y for y in state if y.trips.exists()]
-        return result
+        state = State.objects.exclude(trips__isnull=True)
+        return state
 
     def get_state_serializer_class(self):
         assert self.state_serializer_class is not None, (
@@ -183,6 +181,7 @@ class TripMain(generics.ListCreateAPIView):
         # 여기서 부터 글로벌 트립
         queryset2 = self.filter_queryset(self.get_global_trip_queryset())
         serializer2 = self.get_global_trip_serializer(queryset2, many=True)
+        # queryset3 = self.filter_queryset((self.get_queryset()))
 
         context = {
             "main_categories": response.data,
@@ -196,7 +195,7 @@ class TripMain(generics.ListCreateAPIView):
 class TripCategoryList(generics.ListCreateAPIView):
     """
     trip/trip-category/<int:pk>/ pk에 정수를 넣어서 카테고리 상세조회 가능.
-    그러나 대분류 카테고리별을 하지 않기로 하였으니 대분류 디테일 조회 기능은 사용하지 않을 듯 합니다.
+    그러나 대분류 카테고리별 분류에서 어드벤쳐 트립 정보를 가져가시면 됩니다.
     카테고리에서 제공하는 필드값은 list, detail 뷰 동일함.
     name : 대분류 카테고리 이름
     image : 대분류 이미지 사진 한장
@@ -209,66 +208,10 @@ class TripCategoryList(generics.ListCreateAPIView):
 
 class TripCategoryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = TripCategory.objects.all()
-    serializer_class = TripCategorySerializer
+    serializer_class = TripCategoryDetailSerializer
     state_queryset = State.objects.all()
     state_serializer_class = TripStateSerializer
     name = 'tripcategory-detail'
-
-    # def get_state_queryset(self):
-    #     return State.objects.all()
-    #
-    # def get_state_serializer_class(self):
-    #     assert self.state_serializer_class is not None, (
-    #             "'%s' should either include a `serializer_class` attribute, "
-    #             "or override the `get_serializer_class()` method."
-    #             % self.__class__.__name__
-    #     )
-    #
-    #     return self.state_serializer_class
-    #
-    # def get_state_serializer_context(self):
-    #     return {
-    #         'request': self.request,
-    #         'format': self.format_kwarg,
-    #         'view': self
-    #     }
-    #
-    # def get_state_serializer(self, *args, **kwargs):
-    #     state_serializer_class = self.get_state_serializer_class()
-    #     kwargs['context'] = self.get_state_serializer_context()
-    #     return state_serializer_class(*args, **kwargs)
-    #
-    # def get_state_object(self):
-    #     queryset = self.filter_queryset(self.get_state_queryset())
-    #
-    #     # Perform the lookup filtering.
-    #     lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-    #
-    #     assert lookup_url_kwarg in self.kwargs, (
-    #             'Expected view %s to be called with a URL keyword argument '
-    #             'named "%s". Fix your URL conf, or set the `.lookup_field` '
-    #             'attribute on the view correctly.' %
-    #             (self.__class__.__name__, lookup_url_kwarg)
-    #     )
-    #
-    #     filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-    #     obj = get_object_or_404(queryset, **filter_kwargs)
-    #
-    #     # May raise a permission denied
-    #     self.check_object_permissions(self.request, obj)
-    #
-    #     return obj
-
-    # def retrieve(self, request, *args, **kwargs):
-    #     instance = self.get_object()
-    #     # instance2 = self.get_state_object()
-    #     serializer = self.get_serializer(instance)
-    #     # serializer2 = self.get_state_serializer(instance2)
-    #     # context = {
-    #     #     "serializer": serializer.data,
-    #     #     # "serializer2": serializer2.data,
-    #     # }
-    #     return Response(serializer.data)
 
 
 class TripList(generics.ListCreateAPIView):
@@ -359,9 +302,6 @@ class TripReservationCreate(generics.ListCreateAPIView):
         trip_schedule = request.data["trip_schedule"]
         guest_count = request.data["guest_count"]
         trip = request.data["trip_set"]
-        # total_price_check = Trip.objects.get(pk=trip).price * int(guest_count)
-        # total_price = request.data["total_price"]
-        # print(request.data)
         if not self.schdule_checker(trip, trip_schedule):
             raise ValueError("잘못된 스케줄 입니다", "스케줄을 확인해주세요")
         if self.reservation_checker(guest_count, trip_schedule):
@@ -396,8 +336,6 @@ class TripScheduleList(generics.ListCreateAPIView):
     serializer_class = TripScheduleSerializer
     name = "trip-schedule-list"
 
-    # def
-
     # def post(self, request, *args, **kwargs):
     #     # trip = request.data["trip_set"]
     #     # reservation = request.data["reservation_set"]
@@ -407,32 +345,6 @@ class TripScheduleList(generics.ListCreateAPIView):
     # reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name="trip_reviews")
     # description = models.TextField(blank=True)
     # rating_score = models.SmallIntegerField(default=5)
-
-
-#
-#
-# class PlayerList(generics.ListCreateAPIView):
-#     queryset = Player.objects.all()
-#     serializer_class = PlayerSerializer
-#     name = 'player-list'
-#
-#
-# class PlayerDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Player.objects.all()
-#     serializer_class = PlayerSerializer
-#     name = 'player-detail'
-#
-#
-# class PlayerScoreList(generics.ListCreateAPIView):
-#     queryset = PlayerScore.objects.all()
-#     serializer_class = PlayerScoreSerializer
-#     name = 'playerscore-list'
-#
-#
-# class PlayerScoreDetail(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = PlayerScore.objects.all()
-#     serializer_class = PlayerScoreSerializer
-#     name = 'playerscore-detail'
 
 
 class ApiRoot(generics.GenericAPIView):
@@ -451,7 +363,6 @@ class ApiRoot(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         return Response({
-            # 'players': reverse(PlayerList.name, request=request),
             'main': reverse(TripMain.name, request=request),
             'trip-category': reverse(TripCategoryList.name, request=request),
             'trips': reverse(TripList.name, request=request),

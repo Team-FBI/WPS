@@ -34,6 +34,13 @@ class TripCategory(models.Model):
     def __str__(self):
         return self.name
 
+    def trips(self):
+        trips = []
+        sub_categories = self.sub_tripcategory.all()
+        for sub_category in sub_categories:
+            trips += sub_category.trips.all()
+        return trips
+
 
 class SubTripCategory(models.Model):
     category = models.ForeignKey(TripCategory, on_delete=models.CASCADE, related_name="sub_tripcategory")
@@ -46,6 +53,7 @@ class SubTripCategory(models.Model):
 
     def __str__(self):
         return f"{self.state}-{self.name}"
+
 
 class Trip(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trips")
@@ -127,5 +135,3 @@ class TripReview(models.Model):
 
     def __str__(self):
         return f"{self.user_set}의 리뷰"
-    # 트립의 아이디, 유저의 아이디
-    # 레저베이션을 찾으려면 유저의 아이디와 트립의 스케줄을 알아야 함
