@@ -1,5 +1,4 @@
 from datetime import date
-
 from django.db.models import Q, Avg, QuerySet
 from rest_framework import generics
 from rest_framework.generics import get_object_or_404
@@ -113,7 +112,7 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
             raise PermissionError(
                 "only Owner of reservation could do this", "dont do it"
             )
-        if self.get_queryset()[0].start_date >= datetime.now().date():
+        if self.get_queryset()[0].start_date >= date.today():
             raise ValueError(
                 "start date not passed", "evaluate your reservation after first-day"
             )

@@ -14,10 +14,11 @@ def response_error_handler(func: Callable) -> Callable:
             e: BaseException
             err: BaseException
             res_code: int
-            err = BaseException(
-                "Unknow Interner server error",
-                "We will log this and solve problem soon",
-            )
+            # err = BaseException(
+                # "Unknow Interner server error",
+                # "We will log this and solve problem soon",
+            # )
+            err = e
             res_code = status.HTTP_423_LOCKED
             if isinstance(e, ConnectionRefusedError):
                 err = e
