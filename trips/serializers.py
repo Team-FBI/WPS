@@ -68,10 +68,29 @@ class TripCategorySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = TripCategory
         fields = (
+            "url",
+            "name",
+            "image",
+            "description",
+
+        )
+
+
+class TripCategoryDetailSerializer(serializers.HyperlinkedModelSerializer):
+    """
+    메인 페이지의 카테고리 상세 뷰
+    """
+
+    trips = TripCategoryOnly(many=True)
+
+    class Meta:
+        model = TripCategory
+        fields = (
 
             "name",
             "image",
             "description",
+            "trips",
 
         )
 
@@ -223,11 +242,6 @@ class TestSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class TripReservationCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Reservation
         fields = "__all__"
-
-    def create(self, validated_data):
-        validated_data["user_set"] = self.context.get("view").request.user
-        return super().create(validated_data)
