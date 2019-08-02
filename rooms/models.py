@@ -43,7 +43,6 @@ class Facility(models.Model):
     def __str__(self):
         return self.name
 
-
 class Room(models.Model):
     host = models.ForeignKey(
         get_user_model(), on_delete=models.CASCADE, related_name="rooms"
@@ -56,7 +55,7 @@ class Room(models.Model):
     )
     postal_code = models.CharField(max_length=15, blank=True, null=True)
     mobile = models.CharField(max_length=15, blank=True, null=True)
-    check_in = models.TimeField(blank=True, null=True)
+    check_in = models.TimeField(blank=True, null=True, default=)
     check_out = models.TimeField(blank=True, null=True)
     image = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     image_1 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
