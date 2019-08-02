@@ -55,7 +55,7 @@ class Room(models.Model):
     )
     postal_code = models.CharField(max_length=15, blank=True, null=True)
     mobile = models.CharField(max_length=15, blank=True, null=True)
-    check_in = models.TimeField(blank=True, null=True, default=)
+    check_in = models.TimeField(blank=True, null=True)
     check_out = models.TimeField(blank=True, null=True)
     image = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     image_1 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
