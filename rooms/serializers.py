@@ -139,7 +139,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
 
     def get_facilities(self, obj):
         facilities = obj.facilities.all()
-        return [v.name for v in facilities]
+        return [[v.name, v.image] for v in facilities]
 
     def get_reservations(self, obj):
         reservations = obj.reservations.all()
@@ -180,8 +180,8 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "image_2",
             "image_3",
             "image_4",
-            "image_5",
-            "image_6",
+            "check_in",
+            "check_out",
             "total_rating",
             "capacity",
             "space",

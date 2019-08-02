@@ -5,6 +5,7 @@ from django.utils.text import slugify
 from locations.models import State
 import uuid
 
+
 def n_tuple(n, first=[], last=[]):
     return tuple(first + [(i, i) for i in range(1, n)] + last)
 
@@ -26,16 +27,21 @@ BATHROOM_TYPES = [(1, "Private"), (2, "Shared")]
 CANCELATION_RULES = [(1, "Flexible"), (2, "Semi-flexible"), (3, "Strict")]
 
 
+def get_upload_path(instance, filename):
+    if isinstance(instance, Facility):
+        ends = filename.split(".")[-1]
+        path = f"facilities/{instance.name}.{ends}"
+    else:
+        path = f"rooms/{instance.host.id}/{instance.slug}/{filename}"
+    return path
+
+
 class Facility(models.Model):
     name = models.CharField(max_length=250)
+    image = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
 
     def __str__(self):
         return self.name
-
-
-def get_upload_path(instance, filename):
-    path = f"rooms/{instance.host.id}/{instance.slug}/{filename}"
-    return path
 
 
 class Room(models.Model):
@@ -50,13 +56,13 @@ class Room(models.Model):
     )
     postal_code = models.CharField(max_length=15, blank=True, null=True)
     mobile = models.CharField(max_length=15, blank=True, null=True)
+    check_in = models.TimeField(blank=True, null=True)
+    check_out = models.TimeField(blank=True, null=True)
     image = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     image_1 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     image_2 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     image_3 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     image_4 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
-    image_5 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
-    image_6 = models.ImageField(upload_to=get_upload_path, blank=True, null=True)
     price = models.PositiveIntegerField(blank=True, null=True)
     room_type = models.SmallIntegerField(choices=ROOM_TYPES, default=1)
     space = models.SmallIntegerField(choices=SPACE_TYPES, default=1)
