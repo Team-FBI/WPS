@@ -57,9 +57,9 @@ class SubTripCategory(models.Model):
 
 class Trip(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trips")
-    # 트립 제목
     name = models.CharField(max_length=200)
     sub_category = models.ForeignKey(SubTripCategory, on_delete=models.CASCADE, related_name="trips")
+    detail_category = models.CharField(max_length=200, blank=True)
     state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="trips")
     duration_time = models.SmallIntegerField(default=2)
     host_about = models.TextField(default="게스트에게 자기 소개와 함께 트립 진행에 있어 나만의 특별함을 알려주세요.")
@@ -92,9 +92,7 @@ class Trip(models.Model):
         return self.name
 
     class Meta:
-        ordering = (
-            "-rating_score",
-        )
+        ordering = ("-rating_score",)
 
 
 class TripSchedule(models.Model):
@@ -116,7 +114,6 @@ class TripSchedule(models.Model):
 
 class Reservation(models.Model):
     user_set = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trip_reservations")
-    trip_set = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="trip_reservations")
     trip_schedule = models.ForeignKey(TripSchedule, on_delete=models.CASCADE, related_name="trip_reservations")
     guest_count = models.IntegerField(default=0)
     total_price = models.IntegerField(default=0)

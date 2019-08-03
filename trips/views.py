@@ -4,7 +4,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from django.shortcuts import get_object_or_404
-import random
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 
 class StateList(generics.ListCreateAPIView):
@@ -27,13 +27,6 @@ class StateDetail(generics.RetrieveUpdateDestroyAPIView):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
         trip_queryset = Trip.objects.all().filter(state_id=filter_kwargs["pk"]).order_by("?")[:13]
-        max_id = trip_queryset.count()
-        # random_queryset = Trip.objects.none()
-        # while True:
-        #     random_index = random.randint(0, max_id)
-        #     random_queryset = trip_queryset[random_index:random_index + 1]
-        #     if random_queryset.count() == 1:
-        #         break order_by("?)
         return trip_queryset
 
     def get_best_trip_queryset(self):
@@ -266,7 +259,49 @@ class TripDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Trip.objects.all()
     serializer_class = TripSerializer
+    reservation_queryset = Reservation.objects.all()
+    reservation_serializer_class = TripReservationCreateSerializer
     name = 'trip-detail'
+
+    def get_reservation_queryset(self):
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+        user = self.request.user
+        return Reservation.objects.all().filter(user_set=user.id, trip_schedule__trip_set=filter_kwargs["pk"])
+
+    def get_reservation_serializer_class(self):
+        assert self.reservation_serializer_class is not None, (
+                "'%s' should either include a `serializer_class` attribute, "
+                "or override the `get_serializer_class()` method."
+                % self.__class__.__name__
+        )
+
+        return self.reservation_serializer_class
+
+    def get_reservation_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
+    def get_reservation_serializer(self, *args, **kwargs):
+        reservation_serializer_class = self.get_reservation_serializer_class()
+        kwargs['context'] = self.get_reservation_serializer_context()
+        return reservation_serializer_class(*args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance2 = self.filter_queryset(self.get_reservation_queryset())
+        serializer = self.get_serializer(instance)
+        serializer2 = self.get_reservation_serializer(instance2, many=True)
+
+        context = {
+            "state_detail": serializer.data,
+            "my_reservation": serializer2.data,
+
+        }
+        return Response(context)
 
 
 class TripReservationCreate(generics.ListCreateAPIView):
@@ -298,27 +333,30 @@ class TripReservationCreate(generics.ListCreateAPIView):
         else:
             return False
 
-    def post(self, request, *args, **kwargs):
-        trip_schedule = request.data["trip_schedule"]
-        guest_count = request.data["guest_count"]
-        trip = request.data["trip_set"]
-        if not self.schdule_checker(trip, trip_schedule):
-            raise ValueError("잘못된 스케줄 입니다", "스케줄을 확인해주세요")
-        if self.reservation_checker(guest_count, trip_schedule):
-            return super().post(request, *args, **kwargs)
-        raise ValueError("인원수가 맞지 않습니다", "인원수를 확인 해주세요")
-
     def perform_create(self, serializer):
-        serializer.save()
+        serializer.save(user_set=self.request.user)
         guest_count = serializer.data["guest_count"]
-        trip_set = serializer.data["trip_schedule"]
+        schedule = serializer.data["trip_schedule"]
         # 트립 스케줄의 인원수 업데이트
-        schedule = TripSchedule.objects.get(pk=trip_set)
+        schedule = TripSchedule.objects.get(pk=schedule)
         schedule_now_guest_count = schedule.now_guest_count
         schedule.now_guest_count = schedule_now_guest_count + guest_count
         if schedule.capacity == schedule.now_guest_count:
             schedule.active = False
         schedule.save()
+
+    def post(self, request, *args, **kwargs):
+        trip_schedule = request.data["trip_schedule"]
+        guest_count = request.data["guest_count"]
+        if self.reservation_checker(guest_count, trip_schedule):
+            return super().post(request, *args, **kwargs)
+        raise ValueError("인원수가 맞지 않습니다", "인원수를 확인 해주세요")
+
+
+class TripReservationDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Reservation.objects.all()
+    serializer_class = TripReservationCreateSerializer
+    name = "reservation-detail"
 
 
 class TripReviewCreate(generics.ListCreateAPIView):
@@ -335,16 +373,6 @@ class TripScheduleList(generics.ListCreateAPIView):
     queryset = TripSchedule.objects.all()
     serializer_class = TripScheduleSerializer
     name = "trip-schedule-list"
-
-    # def post(self, request, *args, **kwargs):
-    #     # trip = request.data["trip_set"]
-    #     # reservation = request.data["reservation_set"]
-    #     return super().post(request, *args, **kwargs)
-
-    # trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="trip_reviews")
-    # reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name="trip_reviews")
-    # description = models.TextField(blank=True)
-    # rating_score = models.SmallIntegerField(default=5)
 
 
 class ApiRoot(generics.GenericAPIView):

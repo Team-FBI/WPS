@@ -53,6 +53,7 @@ class TripCategoryOnly(serializers.HyperlinkedModelSerializer):
             "name",
             "image_1",
             "rating_score",
+            "detail_category",
             "duration_time",
             "provides",
             "url",
@@ -96,6 +97,8 @@ class TripCategoryDetailSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class TripReviewSerializer(serializers.ModelSerializer):
+    uset_set = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = TripReview
         fields = (
@@ -126,6 +129,7 @@ class TripScheduleSerializer(serializers.ModelSerializer):
             "capacity",
             "now_guest_count",
             "active",
+
         )
 
 
@@ -142,6 +146,17 @@ class TripListSerializer(serializers.HyperlinkedModelSerializer):
             "provides",
             "url",
         )
+
+
+class TripReservationDetail(serializers.ModelSerializer):
+    user_set = serializers.PrimaryKeyRelatedField(
+
+        read_only=True,
+    )
+
+    class Meta:
+        model = Reservation
+        fields = "__all__"
 
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
@@ -161,6 +176,7 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             "pk",
             "name",
             "sub_category",
+            "detail_category",
             "state",
             "duration_time",
             "provides",
@@ -188,6 +204,7 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             "image_5",
             "image_6",
             "image_7",
+            # "reservation",
 
         )
 
@@ -242,6 +259,11 @@ class TestSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class TripReservationCreateSerializer(serializers.ModelSerializer):
+    user_set = serializers.PrimaryKeyRelatedField(
+
+        read_only=True,
+    )
+
     class Meta:
         model = Reservation
         fields = "__all__"
