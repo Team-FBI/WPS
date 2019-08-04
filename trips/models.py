@@ -84,12 +84,16 @@ class Trip(models.Model):
     max_guest = models.SmallIntegerField(choices=MAX_GUEST, default=4)
     price = models.IntegerField(default=30000)
     rating_score = models.FloatField(default=0)
+    representation = models.BooleanField(default=False)
 
     def trip_active(self):
         return TripSchedule.objects.filter(active=True)
 
+    def review_count(self):
+        return TripReview.objects.filter(trip_set=self).count()
+
     def __str__(self):
-        return self.name
+        return f"{self.name} {self.pk}"
 
     class Meta:
         ordering = ("-rating_score",)

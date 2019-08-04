@@ -9,6 +9,7 @@ urlpatterns = [
     path("trips/schedule/", TripScheduleList.as_view(), name=TripScheduleList.name),
     path("trips/<int:pk>/", TripDetail.as_view(), name=TripDetail.name),
     path("reservation/", TripReservationCreate.as_view(), name=TripReservationCreate.name),
+    path("reservation/<int:pk>/", TripReservationDetail.as_view(), name=TripReservationDetail.name),
     path("review/", TripReviewCreate.as_view(), name=TripReviewCreate.name),
     path("state/", StateList.as_view(), name=StateList.name),
     path("state/<int:pk>/", StateDetail.as_view(), name=StateDetail.name),

@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, pagination
 from .models import *
 from locations.models import State
 
@@ -53,6 +53,7 @@ class TripCategoryOnly(serializers.HyperlinkedModelSerializer):
             "name",
             "image_1",
             "rating_score",
+            "review_count",
             "detail_category",
             "duration_time",
             "provides",
@@ -97,12 +98,17 @@ class TripCategoryDetailSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class TripReviewSerializer(serializers.ModelSerializer):
-    uset_set = serializers.PrimaryKeyRelatedField(read_only=True)
+    user_set = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = TripReview
         fields = (
-            "__all__"
+            "user_set",
+            "trip_set",
+            "reservation_set",
+            "description",
+            "rating_score",
+            "created_at",
         )
 
 
@@ -159,16 +165,31 @@ class TripReservationDetail(serializers.ModelSerializer):
         fields = "__all__"
 
 
+from django.core.paginator import Paginator
+
+
 class TripSerializer(serializers.HyperlinkedModelSerializer):
     host = serializers.ReadOnlyField(source='host.username')
     sub_category = serializers.SlugRelatedField(queryset=SubTripCategory.objects.all(), slug_field="name")
     compatibility = serializers.ChoiceField(source="get_compatibility_display", choices=COMPATIBILITY)
     technic = serializers.ChoiceField(source="get_technic_display", choices=BEGINNER)
     strength = serializers.ChoiceField(source="get_strength_display", choices=LIGHT)
-    trip_reviews = TripReviewDetailOnlySerializer(many=True)
+    trip_reviews = serializers.SerializerMethodField('paginated_review')
+    # trip_reviews = TripReviewDetailOnlySerializer(many=True)
     schedules = TripScheduleSerializer(many=True, source="trip_active")
     provides = TripProvideSerializer(many=True)
     state = serializers.SlugRelatedField(queryset=State.objects.all(), slug_field="name")
+
+    def paginated_review(self, obj):
+        page_size = self.context['request'].query_params.get('size') or 5
+        paginator = Paginator(obj.trip_reviews.all(), page_size)
+        page = self.context['request'].query_params.get('page') or 1
+        print(paginator.page_range)
+
+        words_in_book = paginator.page(page)
+        serializer = TripReviewDetailOnlySerializer(words_in_book, many=True,
+                                                    context={'request': self.context['request']})
+        return serializer.data
 
     class Meta:
         model = Trip
@@ -204,21 +225,8 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             "image_5",
             "image_6",
             "image_7",
-            # "reservation",
 
         )
-
-    # def create(self, validated_data):
-    #     review_data = validated_data.pop('trip_reviews')
-    #     review_data["user_set"] = self.context.get("view").request.user
-    #     trip_id = Trip.objects.get(id=self.context.get("view").kwargs.get("pk"))
-    #     user_id = self.context.get("view").request.user
-    #     user = User.objects.get(pk=user_id)
-    #     user_reservation = user.reservation.all().filter(trip_schedule__trip_set=trip_id)
-    #
-    #     review_data["reservation"] = user_reservation
-    #     Profile.objects.create(user=user, **profile_data)
-    #     return user
 
 
 class SubCategorySerializer(serializers.ModelSerializer):

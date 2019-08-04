@@ -3,8 +3,7 @@ from .serializers import *
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from django.shortcuts import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.db.models import Avg
 
 
 class StateList(generics.ListCreateAPIView):
@@ -145,6 +144,9 @@ class TripMain(generics.ListCreateAPIView):
     def get_global_trip_queryset(self):
         return Trip.objects.all().order_by("?")[:13]
 
+    def get_main_trip_queryset(self):
+        return Trip.objects.filter(sub_category__category__name="어드벤쳐").order_by("?")[:7]
+
     def get_global_trip_serializer_class(self):
         assert self.global_trip_serializer_class is not None, (
                 "'%s' should either include a `serializer_class` attribute, "
@@ -174,10 +176,11 @@ class TripMain(generics.ListCreateAPIView):
         # 여기서 부터 글로벌 트립
         queryset2 = self.filter_queryset(self.get_global_trip_queryset())
         serializer2 = self.get_global_trip_serializer(queryset2, many=True)
-        # queryset3 = self.filter_queryset((self.get_queryset()))
-
+        queryset3 = self.filter_queryset(self.get_main_trip_queryset())
+        serializer3 = self.get_global_trip_serializer(queryset3, many=True)
         context = {
             "main_categories": response.data,
+            "global_adventure_trip": serializer3.data,
             "global_recommend_trip": serializer2.data,
             "state": serializer.data,
 
@@ -297,7 +300,7 @@ class TripDetail(generics.RetrieveUpdateDestroyAPIView):
         serializer2 = self.get_reservation_serializer(instance2, many=True)
 
         context = {
-            "state_detail": serializer.data,
+            "trip_detail": serializer.data,
             "my_reservation": serializer2.data,
 
         }
@@ -363,6 +366,26 @@ class TripReviewCreate(generics.ListCreateAPIView):
     queryset = TripReview.objects.all()
     serializer_class = TripReviewSerializer
     name = "trip-review"
+
+    def perform_create(self, serializer):
+        serializer.save(user_set=self.request.user)
+        trip = serializer.data["trip_set"]
+        trip = Trip.objects.get(pk=trip)
+        trip_all_review = TripReview.objects.filter(trip_set=trip)
+        trip_avg_score = trip_all_review.aggregate(Avg("rating_score"))
+        trip.rating_score = trip_avg_score["rating_score__avg"]
+        trip.save()
+
+    # total = 0
+    # room = Room.objects.filter(id=room_id)
+    # updates = dict()
+    # for key, val in totals.items():
+    #     total += val
+    #     updates.setdefault(key[:-5], round(val, 2))
+    #
+    # total = round(total / 6, 2)
+    # room.update(**updates, total_rating=total)
+    # return Response(data=updates, status=status.HTTP_202_ACCEPTED)
 
 
 class TripScheduleList(generics.ListCreateAPIView):
