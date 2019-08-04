@@ -363,6 +363,14 @@ class TripReservationDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class TripReviewCreate(generics.ListCreateAPIView):
+    """
+    리뷰 만들때 POST
+    trip_set = 트립의아이디
+    reservation_set = 유저의 예약정보
+    description = 유저의 후기
+    rating_socre = 점수 1~5점 사이
+    """
+
     queryset = TripReview.objects.all()
     serializer_class = TripReviewSerializer
     name = "trip-review"
@@ -375,17 +383,6 @@ class TripReviewCreate(generics.ListCreateAPIView):
         trip_avg_score = trip_all_review.aggregate(Avg("rating_score"))
         trip.rating_score = trip_avg_score["rating_score__avg"]
         trip.save()
-
-    # total = 0
-    # room = Room.objects.filter(id=room_id)
-    # updates = dict()
-    # for key, val in totals.items():
-    #     total += val
-    #     updates.setdefault(key[:-5], round(val, 2))
-    #
-    # total = round(total / 6, 2)
-    # room.update(**updates, total_rating=total)
-    # return Response(data=updates, status=status.HTTP_202_ACCEPTED)
 
 
 class TripScheduleList(generics.ListCreateAPIView):

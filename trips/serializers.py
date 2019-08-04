@@ -8,7 +8,7 @@ class RecommendTrip(serializers.HyperlinkedModelSerializer):
     메인 카테고리 페이지내에서 보여 줄 트립의 목록
     표시사항: 이름, 사진, 평점(평점갯수)
     """
-
+    language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
     class Meta:
         model = Trip
         fields = (
@@ -16,6 +16,7 @@ class RecommendTrip(serializers.HyperlinkedModelSerializer):
             "image_1",
             "rating_score",
             "duration_time",
+            "language",
 
         )
 
@@ -46,7 +47,7 @@ class TripCategoryOnly(serializers.HyperlinkedModelSerializer):
     메인 카테고리 페이지내에서 보여 줄 트립의 목록
     """
     provides = serializers.StringRelatedField(many=True)
-
+    language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
     class Meta:
         model = Trip
         fields = (
@@ -55,6 +56,7 @@ class TripCategoryOnly(serializers.HyperlinkedModelSerializer):
             "rating_score",
             "review_count",
             "detail_category",
+            "language",
             "duration_time",
             "provides",
             "url",
@@ -141,13 +143,14 @@ class TripScheduleSerializer(serializers.ModelSerializer):
 
 class TripListSerializer(serializers.HyperlinkedModelSerializer):
     provides = serializers.StringRelatedField(many=True)
-
+    language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
     class Meta:
         model = Trip
         fields = (
             "name",
             "image_1",
             "rating_score",
+            "language",
             "duration_time",
             "provides",
             "url",
@@ -179,6 +182,7 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
     schedules = TripScheduleSerializer(many=True, source="trip_active")
     provides = TripProvideSerializer(many=True)
     state = serializers.SlugRelatedField(queryset=State.objects.all(), slug_field="name")
+    language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
 
     def paginated_review(self, obj):
         page_size = self.context['request'].query_params.get('size') or 5
@@ -200,6 +204,7 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             "detail_category",
             "state",
             "duration_time",
+            "language",
             "provides",
             "schedules",
             "trip_reviews",

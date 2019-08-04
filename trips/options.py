@@ -33,3 +33,15 @@ TECHNIC = (
 
 #최대 수용 게스트 - 인티저 초이스
 MAX_GUEST = [(x, x) for x in range(1, 11)]
+
+#진행언어
+ENGLISH = "ENGLISH"
+KOREAN = "KOREAN"
+COMPLEX = "COMPLEX"
+
+LANGUAGE = (
+    (ENGLISH, "영어"),
+    (KOREAN, "한국어"),
+    (COMPLEX, "영어,한국어")
+
+)

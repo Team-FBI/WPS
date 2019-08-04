@@ -85,6 +85,7 @@ class Trip(models.Model):
     price = models.IntegerField(default=30000)
     rating_score = models.FloatField(default=0)
     representation = models.BooleanField(default=False)
+    language = models.CharField(max_length=100, choices=LANGUAGE, default=ENGLISH)
 
     def trip_active(self):
         return TripSchedule.objects.filter(active=True)
