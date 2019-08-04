@@ -42,6 +42,5 @@ COMPLEX = "COMPLEX"
 LANGUAGE = (
     (ENGLISH, "영어"),
     (KOREAN, "한국어"),
-    (COMPLEX, "영어,한국어")
-
+    (COMPLEX, "영어, 한국어")
 )

@@ -1,6 +1,7 @@
-from rest_framework import serializers, pagination
+from rest_framework import serializers
 from .models import *
 from locations.models import State
+from django.core.paginator import Paginator
 
 
 class RecommendTrip(serializers.HyperlinkedModelSerializer):
@@ -9,6 +10,7 @@ class RecommendTrip(serializers.HyperlinkedModelSerializer):
     표시사항: 이름, 사진, 평점(평점갯수)
     """
     language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+
     class Meta:
         model = Trip
         fields = (
@@ -48,6 +50,7 @@ class TripCategoryOnly(serializers.HyperlinkedModelSerializer):
     """
     provides = serializers.StringRelatedField(many=True)
     language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+
     class Meta:
         model = Trip
         fields = (
@@ -144,6 +147,7 @@ class TripScheduleSerializer(serializers.ModelSerializer):
 class TripListSerializer(serializers.HyperlinkedModelSerializer):
     provides = serializers.StringRelatedField(many=True)
     language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+
     class Meta:
         model = Trip
         fields = (
@@ -168,11 +172,18 @@ class TripReservationDetail(serializers.ModelSerializer):
         fields = "__all__"
 
 
-from django.core.paginator import Paginator
+class HostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "image",
+        )
 
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
-    host = serializers.ReadOnlyField(source='host.username')
+    # host = serializers.ReadOnlyField(source='host.username')
+    host = HostSerializer()
     sub_category = serializers.SlugRelatedField(queryset=SubTripCategory.objects.all(), slug_field="name")
     compatibility = serializers.ChoiceField(source="get_compatibility_display", choices=COMPATIBILITY)
     technic = serializers.ChoiceField(source="get_technic_display", choices=BEGINNER)
