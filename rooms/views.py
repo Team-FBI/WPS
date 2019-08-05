@@ -80,7 +80,7 @@ class RoomListView(generics.ListAPIView):
     ]
     filterset_fields = ["start_date", "end_date", "min_price", "max_price", "capacity", "rating"]
     search_fields = ["=state__name", "=state__country__name", "^host__username"]
-    ordering_fields = ["price", "created_at", "updated_at", "total_rating"]
+    ordering_fields = ["price", "created_at", "updated_at", "total_rating", "-total_rating", "-price", "-created_at", "-updated_at"]
     ordering = ["updated_at"]
 
     @response_error_handler
