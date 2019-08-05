@@ -48,6 +48,8 @@ class UserDetailSerializer(serializers.ModelSerializer):
                     "end_date": r.end_date,
                     "room": r.room.id,
                     "id": r.id,
+                    "title": r.room.title,
+                    "image": r.room.image.url
                 }
             }
             for r in reservations
