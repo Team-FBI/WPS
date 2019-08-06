@@ -181,7 +181,7 @@ class HostSerializer(serializers.ModelSerializer):
         )
 
 
-class StateSerializer(serializers.ModelSerializer):
+class TripDetailStateSerializer(serializers.ModelSerializer):
     country = serializers.SlugRelatedField(queryset=Country.objects.all(), slug_field="name")
 
     class Meta:
@@ -233,7 +233,7 @@ class TripSerializer(serializers.ModelSerializer):
     # trip_reviews = TripReviewDetailOnlySerializer(many=True)
     schedules = TripScheduleSerializer(many=True, source="trip_active")
     provides = TripProvideSerializer(many=True)
-    state = StateSerializer()
+    state = TripDetailStateSerializer()
     language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
     additional = AdditionalSerializer(many=True)
 
