@@ -37,6 +37,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "description",
             "rooms",
             "reservations",
+            "likes",
         ]
 
     def get_reservations(self, obj):

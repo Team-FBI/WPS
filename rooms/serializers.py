@@ -223,3 +223,13 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "super_host",
             "reviews",
         ]
+
+class RoomLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room.RoomLike
+        fields = ["room"]
+
+class RoomLikeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room.RoomLike
+        fields = []

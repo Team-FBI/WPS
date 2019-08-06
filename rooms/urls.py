@@ -10,4 +10,7 @@ urlpatterns = [
     path("<int:pk>", ReservationCreateView.as_view()),
     path("<int:pk>/", views.RoomDetailView.as_view()),
     path("update/<int:pk>/", views.RoomUpdateView.as_view()),
+    path("like/", views.RoomLikeListView.as_view()),
+    path("like/<int:pk>/", views.RoomLikeCreateView.as_view()),
+    path("like/<int:pk>", views.RoomLikeDestroyView.as_view()),
 ]

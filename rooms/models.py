@@ -105,3 +105,7 @@ class Room(models.Model):
     def __str__(self):
         return f"{self.state.name} / {self.slug} / {self.host}"
 
+class RoomLike(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE,related_name="likes")
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+

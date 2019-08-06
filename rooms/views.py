@@ -1,16 +1,17 @@
 from datetime import datetime
 from django.db.models import Q
+from rest_framework import mixins, filters, status
 from rest_framework.viewsets import generics
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
-from rest_framework import filters
-from rest_framework import status
-from rooms.models import Room
+from rooms.models import Room, RoomLike
 from rooms.serializers import (
     RoomListSerializer,
     RoomCreateSerializer,
     RoomDetailSerializer,
+    RoomLikeSerializer,
+    RoomLikeCreateSerializer,
 )
 from rooms.filter_backends import (
     CapacityFilterBackend,
@@ -209,3 +210,88 @@ class RoomDetailView(generics.RetrieveAPIView):
     @response_error_handler
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+
+
+class RoomLikeListView(generics.ListAPIView):
+    """A function, able to get list of user's room likes.
+    
+    Arguments:
+        generics {[ListAPIView]} -- [GET handler]
+    Raises:
+        PermissionError: [GET-HTTP_401_UNAUTHORIZED]
+
+    Returns:
+        [GET] -- [HTTP_200_OK]
+    
+    ---
+    - POST like/<int>/
+    A Function, with post able to create RookLike.
+    
+    Arguments:
+        generics {[CreateAPIView]} -- [POST handler]
+    
+    Raises:
+        PermissionError: [POST-HTTP_401_UNAUTHORIZED]
+        ValueError: [POIST-HTTP_400_BAD_REQUEST]
+    
+    Returns:
+        [POST] -- [HTTP_201_CREATED]
+    
+
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = RoomLikeSerializer
+
+    def get_queryset(self):
+        queryset = RoomLike.objects.filter(Q(user=self.request.user))
+        return queryset
+
+class RoomLikeCreateView(generics.CreateAPIView):
+    """A Function, with post able to create RookLike.
+    
+    Arguments:
+        generics {[CreateAPIView]} -- [POST handler]
+    
+    Raises:
+        PermissionError: [POST-HTTP_401_UNAUTHORIZED]
+        ValueError: [POIST-HTTP_400_BAD_REQUEST]
+    
+    Returns:
+        [POST] -- [HTTP_201_CREATED]
+    """
+    serializer_class = RoomLikeCreateSerializer
+    permission_classes = (IsAuthenticated,)
+    def get_queryset(self):
+        queryset = RoomLike.objects.filter(Q(user=self.request.user))
+        return queryset
+
+    @response_error_handler
+    def perform_create(self, serializer:RoomLikeSerializer):
+        pk = int(self.kwargs.get("pk", None))
+        if self.get_queryset().filter(Q(room=Room.objects.get(id=pk))):
+            raise ValueError("already have!", "unlike room or like others")
+        return RoomLike.objects.create(user=self.request.user, room=Room.objects.get(id=pk))
+
+class RoomLikeDestroyView(generics.DestroyAPIView):
+    """A function able to delete Specific Room liked
+    
+    Arguments:
+        generics {[DestroyAPIView]} -- [DELETE handler]
+    
+    Raises:
+        ValueError: [HTTP_400_BAD_REQUEST]
+    
+    Returns:
+        [DELETE] -- [HTTP_204_NO_CONTENT]
+    """
+    serializer_class = RoomLikeCreateSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @response_error_handler
+    def get_object(self):
+        pk = int(self.kwargs.get("pk", None))
+        quer = RoomLike.objects.filter(Q(user=self.request.user)&Q(room=Room.objects.get(id=pk)))
+        if not quer:
+            raise ValueError(f"room on {pk} not on your likes", "recheck your like list.")
+        return quer[0]
