@@ -25,8 +25,15 @@ class ReservationViewSet(ReadOnlyModelViewSet):
     queryset = RoomReservation.objects.all()
     serializer_class = ReservationSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        user_type = self.request.query_params.get('user_type')
+        queryset = RoomReservation.objects.filter(user=user)
+
+        if user_type == 'host':
+            queryset = RoomReservation.objects.filter(room__host=user)
+        return queryset
+
     def list(self, request, *args, **kwargs):
-        user_id = self.request.user.id
-        self.queryset = RoomReservation.objects.filter(user_id=user_id)
         self.serializer_class = ReservationListSerializer
         return super().list(request, *args, **kwargs)
