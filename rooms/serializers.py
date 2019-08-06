@@ -141,8 +141,14 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     def get_reviews(self, obj):
         reviews = obj.reservations.filter(is_active=False)
         reviews = reviews.order_by("start_date")
-        return [[review.user.username, review.user.image.url if review.user.image else None, review.description] for review in reviews]
-
+        return [
+            [
+                review.user.username,
+                review.user.image.url if review.user.image else None,
+                review.description,
+            ]
+            for review in reviews
+        ]
 
     def get_facilities(self, obj):
         facilities = obj.facilities.all()
@@ -153,7 +159,11 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         return [[v.start_date, v.end_date] for v in reservations if v.is_active]
 
     def get_host(self, obj):
-        return [obj.host.username, obj.host.email, obj.host.image.url if obj.host.image else None]
+        return [
+            obj.host.username,
+            obj.host.email,
+            obj.host.image.url if obj.host.image else None,
+        ]
 
     def get_state(self, obj):
         return obj.state.name
@@ -224,10 +234,12 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "reviews",
         ]
 
+
 class RoomLikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room.RoomLike
         fields = ["room"]
+
 
 class RoomLikeCreateSerializer(serializers.ModelSerializer):
     class Meta:

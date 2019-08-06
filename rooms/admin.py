@@ -1,5 +1,5 @@
 from django.contrib import admin
-from rooms.models import Room, Facility
+from rooms.models import Room, Facility, RoomLike
 
 # Register your models here.
 class RoomOption(admin.ModelAdmin):
@@ -17,6 +17,10 @@ class RoomOption(admin.ModelAdmin):
         "active",
     ]
 
+class RoomLikeOption(admin.ModelAdmin):
+    list_display = ["user", "room"]
+    list_display_links = ("user", "room")
 
+admin.site.register(RoomLike, RoomLikeOption)
 admin.site.register(Room, RoomOption)
 admin.site.register(Facility)

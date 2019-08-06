@@ -24,7 +24,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
 class UserDetailSerializer(serializers.ModelSerializer):
     reservations = serializers.SerializerMethodField()
-
+    likes = serializers.SerializerMethodField()
     class Meta:
         model = get_user_model()
         fields = [
@@ -39,6 +39,9 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "reservations",
             "likes",
         ]
+    def get_likes(self, obj):
+        likes = obj.likes.all()
+        return [v.room.id for v in likes if likes]
 
     def get_reservations(self, obj):
         reservations = obj.reservations.all()
