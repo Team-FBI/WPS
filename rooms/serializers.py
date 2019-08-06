@@ -38,7 +38,7 @@ class RoomListSerializer(serializers.ModelSerializer):
         result = None
         if obj.image_6:
             result = "plus"
-        if obj.host.is_staff:
+        if obj.host.bed_image_0:
             result = "luxe"
         return result
 
@@ -172,7 +172,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
         result = None
         if obj.image_6:
             result = "plus"
-        if obj.host.is_staff:
+        if obj.host.bed_image_0:
             result = "luxe"
         return result
 
