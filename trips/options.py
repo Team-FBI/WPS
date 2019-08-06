@@ -44,3 +44,6 @@ LANGUAGE = (
     (KOREAN, "한국어"),
     (COMPLEX, "영어, 한국어")
 )
+
+#날짜 선택
+DAY = [(x, x) for x in range(1, 30)]

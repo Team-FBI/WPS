@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-from locations.models import State
+from locations.models import State, Country
 from django.core.paginator import Paginator
 
 
@@ -181,8 +181,49 @@ class HostSerializer(serializers.ModelSerializer):
         )
 
 
-class TripSerializer(serializers.HyperlinkedModelSerializer):
-    # host = serializers.ReadOnlyField(source='host.username')
+class StateSerializer(serializers.ModelSerializer):
+    country = serializers.SlugRelatedField(queryset=Country.objects.all(), slug_field="name")
+
+    class Meta:
+        model = State
+        fields = (
+            "name",
+            "country",
+        )
+
+
+class AdditionalScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AdditionalSchedule
+        fields = (
+            "day",
+            "description",
+            "image_1",
+            "image_2",
+            "image_3",
+        )
+
+
+class AdditionalSerializer(serializers.ModelSerializer):
+    additional_schedule = AdditionalScheduleSerializer(many=True)
+
+    class Meta:
+        model = Additional
+        fields = (
+            "description",
+            "image_1",
+            "image_2",
+            "image_3",
+            "image_4",
+            "image_5",
+            "image_6",
+            "image_7",
+            "additional_schedule",
+
+        )
+
+
+class TripSerializer(serializers.ModelSerializer):
     host = HostSerializer()
     sub_category = serializers.SlugRelatedField(queryset=SubTripCategory.objects.all(), slug_field="name")
     compatibility = serializers.ChoiceField(source="get_compatibility_display", choices=COMPATIBILITY)
@@ -192,8 +233,9 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
     # trip_reviews = TripReviewDetailOnlySerializer(many=True)
     schedules = TripScheduleSerializer(many=True, source="trip_active")
     provides = TripProvideSerializer(many=True)
-    state = serializers.SlugRelatedField(queryset=State.objects.all(), slug_field="name")
+    state = StateSerializer()
     language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+    additional = AdditionalSerializer(many=True)
 
     def paginated_review(self, obj):
         page_size = self.context['request'].query_params.get('size') or 5
@@ -241,6 +283,7 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             "image_5",
             "image_6",
             "image_7",
+            "additional",
 
         )
 

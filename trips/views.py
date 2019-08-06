@@ -417,6 +417,5 @@ class ApiRoot(generics.GenericAPIView):
             'schedule': reverse(TripScheduleList.name, request=request),
             "reservation": reverse(TripReservationCreate.name, request=request),
             "state": reverse(StateList.name, request=request),
-            "review": reverse(TripReviewCreate.name, request=request)
-
+            "review": reverse(TripReviewCreate.name, request=request),
         })

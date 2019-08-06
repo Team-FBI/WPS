@@ -100,6 +100,33 @@ class Trip(models.Model):
         ordering = ("-rating_score",)
 
 
+class Additional(models.Model):
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="additional")
+    description = models.TextField(blank=True)
+    image_1 = models.CharField(blank=True, max_length=300)
+    image_2 = models.CharField(blank=True, max_length=300)
+    image_3 = models.CharField(blank=True, max_length=300)
+    image_4 = models.CharField(blank=True, max_length=300)
+    image_5 = models.CharField(blank=True, max_length=300)
+    image_6 = models.CharField(blank=True, max_length=300)
+    image_7 = models.CharField(blank=True, max_length=300)
+
+    def save(self, *args, **kwargs):
+        representation = self.trip
+        representation.representation = True
+        representation.save()
+        super(Additional, self).save()
+
+
+class AdditionalSchedule(models.Model):
+    additional = models.ForeignKey(Additional, on_delete=models.CASCADE, related_name="additional_schedule")
+    day = models.IntegerField(choices=DAY, default=1)
+    description = models.TextField(blank=True)
+    image_1 = models.CharField(blank=True, max_length=300)
+    image_2 = models.CharField(blank=True, max_length=300)
+    image_3 = models.CharField(blank=True, max_length=300)
+
+
 class TripSchedule(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="host_trip_schedules")
     trip_set = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="schedules")
