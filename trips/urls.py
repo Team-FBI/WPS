@@ -13,6 +13,9 @@ urlpatterns = [
     path("review/", TripReviewCreate.as_view(), name=TripReviewCreate.name),
     path("state/", StateList.as_view(), name=StateList.name),
     path("state/<int:pk>/", StateDetail.as_view(), name=StateDetail.name),
+    path("like/", TripLikeListView.as_view()),
+    path("like/<int:pk>/", TripLikeCreateView.as_view()),
+    path("like/<int:pk>", TripLikeDestroyView.as_view()),
     path("", ApiRoot.as_view(), name=ApiRoot.name),
 
 ]

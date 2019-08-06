@@ -334,3 +334,17 @@ class TripReservationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = "__all__"
+
+
+class TripLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripLike
+        fields = (
+            "trip",
+        )
+
+
+class TripLikeCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripLike
+        fields = []

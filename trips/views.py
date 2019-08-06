@@ -1,9 +1,11 @@
+from config.utils import response_error_handler
 from .models import *
 from .serializers import *
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from django.db.models import Avg
+from django.db.models import Avg, Q
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 
 class StateList(generics.ListCreateAPIView):
@@ -395,6 +397,44 @@ class TripScheduleList(generics.ListCreateAPIView):
     name = "trip-schedule-list"
 
 
+class TripLikeListView(generics.ListAPIView):
+    serializer_class = TripLikeSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        queryset = TripLike.objects.filter(Q(user=self.request.user))
+        return queryset
+
+
+class TripLikeCreateView(generics.CreateAPIView):
+    serializer_class = TripLikeCreateSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        queryset = TripLike.objects.filter(Q(user=self.request.user))
+        return queryset
+
+    @response_error_handler
+    def perform_create(self, serializer:TripLikeSerializer):
+        pk = int(self.kwargs.get("pk", None))
+        if self.get_queryset().filter(Q(trip=Trip.objects.get(id=pk))):
+            raise ValueError("already have!", "unlike Trip or like others")
+        return TripLike.objects.create(user=self.request.user, trip=Trip.objects.get(id=pk))
+
+
+class TripLikeDestroyView(generics.DestroyAPIView):
+    serializer_class = TripLikeCreateSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @response_error_handler
+    def get_object(self):
+        pk = int(self.kwargs.get("pk", None))
+        quer = TripLike.objects.filter(Q(user=self.request.user) & Q(trip=Trip.objects.get(id=pk)))
+        if not quer:
+            raise ValueError(f"trip on {pk} not on your likes", "recheck your like list.")
+        return quer[0]
+
+
 class ApiRoot(generics.GenericAPIView):
     """
     트립 API 상세 설명
@@ -404,6 +444,9 @@ class ApiRoot(generics.GenericAPIView):
     trips/ -> 트립의 전체 목록
     trips/int/ -> 트립의 상세뷰
     schedule/ -> 트립의 스케줄 리스트
+    state - > 지역구분
+    state/<int:pk> -> 지역별 상세뷰
+
 
 
    """
@@ -418,4 +461,5 @@ class ApiRoot(generics.GenericAPIView):
             "reservation": reverse(TripReservationCreate.name, request=request),
             "state": reverse(StateList.name, request=request),
             "review": reverse(TripReviewCreate.name, request=request),
+
         })
