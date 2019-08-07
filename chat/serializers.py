@@ -39,11 +39,12 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class ReservationSerializer(serializers.ModelSerializer):
     room = RoomSerializer()
+    user = UserSerializer()
     messages = MessageSerializer(many=True)
 
     class Meta:
         model = RoomReservation
-        fields = ('id', 'start_date', 'end_date', 'room', 'messages')
+        fields = ('id', 'user', 'start_date', 'end_date', 'room', 'messages')
 
 
 class ReservationListSerializer(ReservationSerializer):
