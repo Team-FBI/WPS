@@ -20,6 +20,7 @@ class RoomListSerializer(serializers.ModelSerializer):
     label = serializers.SerializerMethodField()
     super_host = serializers.SerializerMethodField()
     facilities = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
 
     def get_facilities(self, obj):
         facilities = obj.facilities.all()
@@ -50,6 +51,13 @@ class RoomListSerializer(serializers.ModelSerializer):
         facilities = obj.facilities.all()
         return [v.name for v in facilities]
 
+    def get_is_saved(self, obj):
+        user = self.context.get("request").user
+        wish_lists = user.wish_lists.filter(rooms__in=[obj])
+        if wish_lists.exists():
+            return True
+        return False
+
     class Meta:
         model = Room.Room
         fields = [
@@ -77,6 +85,7 @@ class RoomListSerializer(serializers.ModelSerializer):
             "label",
             "super_host",
             "facilities",
+            "is_saved",
         ]
 
 
@@ -137,6 +146,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     label = serializers.SerializerMethodField()
     super_host = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
 
     def get_reviews(self, obj):
         reviews = obj.reservations.filter(is_active=False)
@@ -179,6 +189,13 @@ class RoomDetailSerializer(serializers.ModelSerializer):
     def get_super_host(self, obj):
         if obj.host.rooms.filter(total_rating__gte=3.8).count() > 3:
             return True
+
+    def get_is_saved(self, obj):
+        user = self.context.get("request").user
+        wish_lists = user.wish_lists.filter(rooms__in=[obj])
+        if wish_lists.exists():
+            return True
+        return False
 
     class Meta:
         model = Room.Room
@@ -232,6 +249,7 @@ class RoomDetailSerializer(serializers.ModelSerializer):
             "value_score",
             "super_host",
             "reviews",
+            "is_saved",
         ]
 
 
