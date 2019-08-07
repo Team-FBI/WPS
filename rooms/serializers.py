@@ -53,6 +53,8 @@ class RoomListSerializer(serializers.ModelSerializer):
 
     def get_is_saved(self, obj):
         user = self.context.get("request").user
+        if user.is_anonymous:
+            return False
         wish_lists = user.wish_lists.filter(rooms__in=[obj])
         if wish_lists.exists():
             return True
@@ -192,6 +194,8 @@ class RoomDetailSerializer(serializers.ModelSerializer):
 
     def get_is_saved(self, obj):
         user = self.context.get("request").user
+        if user.is_anonymous:
+            return False
         wish_lists = user.wish_lists.filter(rooms__in=[obj])
         if wish_lists.exists():
             return True
