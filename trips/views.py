@@ -115,6 +115,7 @@ class TripMain(generics.ListCreateAPIView):
     state_serializer_class = TripStateSerializer
     global_trip_queryset = Trip.objects.all()
     global_trip_serializer_class = TripCategoryOnly
+    additional_serializer_class = MainAdditionalSerializer
     name = 'trip-main'
 
     def get_state_queryset(self):
@@ -170,6 +171,33 @@ class TripMain(generics.ListCreateAPIView):
         kwargs['context'] = self.get_state_serializer_context()
         return global_trip_serializer_class(*args, **kwargs)
 
+    ########
+
+    def get_additional_queryset(self):
+        # additional = Additional.objects.filter(main=True)
+        return Additional.objects.filter(main_page=True)
+
+    def get_additional_serializer_class(self):
+        assert self.additional_serializer_class is not None, (
+                "'%s' should either include a `serializer_class` attribute, "
+                "or override the `get_serializer_class()` method."
+                % self.__class__.__name__
+        )
+
+        return self.additional_serializer_class
+
+    def get_additional_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
+    def get_additional_serializer(self, *args, **kwargs):
+        additional_serializer_class = self.get_additional_serializer_class()
+        kwargs['context'] = self.get_additional_serializer_context()
+        return additional_serializer_class(*args, **kwargs)
+
     def list(self, request, *args, **kwargs):
         response = super().list(request, args, kwargs)
         # 지역에 관한 스테이트
@@ -180,7 +208,10 @@ class TripMain(generics.ListCreateAPIView):
         serializer2 = self.get_global_trip_serializer(queryset2, many=True)
         queryset3 = self.filter_queryset(self.get_main_trip_queryset())
         serializer3 = self.get_global_trip_serializer(queryset3, many=True)
+        queryset4 = self.filter_queryset(self.get_additional_queryset())
+        serializer4 = self.get_additional_serializer(queryset4, many=True)
         context = {
+            "representation_trip_5":serializer4.data,
             "main_categories": response.data,
             "global_adventure_trip": serializer3.data,
             "global_recommend_trip": serializer2.data,
@@ -415,7 +446,7 @@ class TripLikeCreateView(generics.CreateAPIView):
         return queryset
 
     @response_error_handler
-    def perform_create(self, serializer:TripLikeSerializer):
+    def perform_create(self, serializer: TripLikeSerializer):
         pk = int(self.kwargs.get("pk", None))
         if self.get_queryset().filter(Q(trip=Trip.objects.get(id=pk))):
             raise ValueError("already have!", "unlike Trip or like others")

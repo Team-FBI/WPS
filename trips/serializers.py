@@ -223,6 +223,19 @@ class AdditionalSerializer(serializers.ModelSerializer):
         )
 
 
+class MainAdditionalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Additional
+        fields = (
+            "trip",
+            "media",
+            "description",
+            "image_1",
+
+
+        )
+
+
 class TripSerializer(serializers.ModelSerializer):
     host = HostSerializer()
     sub_category = serializers.SlugRelatedField(queryset=SubTripCategory.objects.all(), slug_field="name")

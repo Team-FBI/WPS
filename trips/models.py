@@ -102,6 +102,7 @@ class Trip(models.Model):
 
 class Additional(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="additional")
+    media = models.CharField(blank=True, max_length=300)
     description = models.TextField(blank=True)
     image_1 = models.CharField(blank=True, max_length=300)
     image_2 = models.CharField(blank=True, max_length=300)
@@ -110,6 +111,7 @@ class Additional(models.Model):
     image_5 = models.CharField(blank=True, max_length=300)
     image_6 = models.CharField(blank=True, max_length=300)
     image_7 = models.CharField(blank=True, max_length=300)
+    main_page = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         representation = self.trip
