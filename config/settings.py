@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "reservations.apps.ReservationsConfig",
     "corsheaders",
     "trips.apps.TripsConfig",
+    "wishlists.apps.WishlistsConfig"
 ]
 
 MIDDLEWARE = [
@@ -186,7 +187,6 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             "hosts": [('airbnb-redis.fk7rbs.0001.apn2.cache.amazonaws.com', 6379)],
-            # "hosts": [('127.0.0.1', 6379)], # for local test
         },
     },
 }

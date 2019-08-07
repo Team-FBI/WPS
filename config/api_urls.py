@@ -4,7 +4,9 @@ from rooms.urls import urlpatterns as rooms_router
 from reservations.urls import urlpatterns as reservations_router
 from chat.urls import urlpatterns as chat_router
 from trips.urls import urlpatterns as trip_router
+from wishlists.urls import urlpatterns as wish_lists_router
 from django.urls import include, path
+
 
 urlpatterns = [
     path("accounts/", include(accounts_router), name="accounts"),
@@ -13,4 +15,5 @@ urlpatterns = [
     path("reservations/", include(reservations_router), name="reservations"),
     path("chat/", include(chat_router), name='chat'),
     path("trip/", include(trip_router), name="trip"),
+    path("wishlists/", include(wish_lists_router)),
 ]
