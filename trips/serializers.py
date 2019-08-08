@@ -109,7 +109,7 @@ class TripUserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "username",
-            "trip_image",
+            # "trip_image",
         )
 
 
