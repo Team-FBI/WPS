@@ -370,7 +370,6 @@ class RepresentationTripSerializer(serializers.HyperlinkedModelSerializer):
     additional = MainAdditionalSerializer(many=True)
     host = HostSerializer()
 
-
     class Meta:
         model = Trip
         fields = (
@@ -380,4 +379,35 @@ class RepresentationTripSerializer(serializers.HyperlinkedModelSerializer):
             "url",
             "host",
             "additional",
+        )
+
+
+# 메인 트립
+class MainTripStateSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = State
+        fields = (
+            "name",
+        )
+
+
+class MainGlobalTrip(serializers.HyperlinkedModelSerializer):
+    """
+    메인 카테고리 페이지내에서 보여 줄 트립의 목록
+    """
+    state = MainTripStateSerializer()
+
+    # language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+
+    class Meta:
+        model = Trip
+        fields = (
+            "name",
+            "image_1",
+            "state",
+            "rating_score",
+            "review_count",
+            "detail_category",
+            "url",
+
         )
