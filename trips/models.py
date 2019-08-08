@@ -27,6 +27,7 @@ class TripCategory(models.Model):
     name = models.CharField(max_length=200, unique=True)
     image = models.CharField(max_length=500, blank=True)
     description = models.CharField(max_length=250)
+    on_off = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("name",)

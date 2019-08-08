@@ -119,6 +119,9 @@ class TripMain(generics.ListCreateAPIView):
     global_adventure_trip_serializer_class = MainGlobalTrip
     name = 'trip-main'
 
+    def get_queryset(self):
+        return TripCategory.objects.all().filter(on_off=True)
+
     def get_state_queryset(self):
         state = State.objects.exclude(trips__isnull=True)
         return state
