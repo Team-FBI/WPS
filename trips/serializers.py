@@ -103,9 +103,19 @@ class TripCategoryDetailSerializer(serializers.HyperlinkedModelSerializer):
 
         )
 
+#
+class TripUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "trip_image",
+        )
+
 
 class TripReviewSerializer(serializers.ModelSerializer):
     user_set = serializers.PrimaryKeyRelatedField(read_only=True)
+    # user_set = TripUserSerializer()
 
     class Meta:
         model = TripReview
@@ -120,7 +130,8 @@ class TripReviewSerializer(serializers.ModelSerializer):
 
 
 class TripReviewDetailOnlySerializer(serializers.ModelSerializer):
-    user_set = serializers.ReadOnlyField(source='user_set.username')
+    user_set = TripUserSerializer()
+
 
     class Meta:
         model = TripReview
@@ -397,7 +408,6 @@ class MainGlobalTrip(serializers.HyperlinkedModelSerializer):
     """
     state = MainTripStateSerializer()
 
-    # language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
 
     class Meta:
         model = Trip

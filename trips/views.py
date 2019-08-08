@@ -114,8 +114,9 @@ class TripMain(generics.ListCreateAPIView):
     state_queryset = State.objects.all()
     state_serializer_class = TripStateSerializer
     global_trip_queryset = Trip.objects.all()
-    global_trip_serializer_class = MainGlobalTrip
+    global_trip_serializer_class = TripCategoryOnly
     additional_serializer_class = RepresentationTripSerializer
+    global_adventure_trip_serializer_class = MainGlobalTrip
     name = 'trip-main'
 
     def get_state_queryset(self):
@@ -143,9 +144,10 @@ class TripMain(generics.ListCreateAPIView):
         kwargs['context'] = self.get_state_serializer_context()
         return state_serializer_class(*args, **kwargs)
 
-    # 여기서 부터 글로벌 트립
+    # 여기서 부터 글로벌 트립 이것이 글로벌 트립
     def get_global_trip_queryset(self):
         return Trip.objects.all().order_by("?")[:13]
+
 
     def get_main_trip_queryset(self):
         return Trip.objects.filter(sub_category__category__name="어드벤쳐").order_by("?")[:7]
@@ -195,6 +197,28 @@ class TripMain(generics.ListCreateAPIView):
         kwargs['context'] = self.get_additional_serializer_context()
         return additional_serializer_class(*args, **kwargs)
 
+    #글로벌 트립 분기를 위해서 추가 메서드 작성
+    def get_global_adventure_trip_serializer_class(self):
+        assert self.global_adventure_trip_serializer_class is not None, (
+                "'%s' should either include a `serializer_class` attribute, "
+                "or override the `get_serializer_class()` method."
+                % self.__class__.__name__
+        )
+
+        return self.global_adventure_trip_serializer_class
+
+    def get_global_adventure_trip_serializer_context(self):
+        return {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+
+    def get_global_adventure_trip_serializer(self, *args, **kwargs):
+        global_adventure_trip_serializer_class = self.get_global_adventure_trip_serializer_class()
+        kwargs['context'] = self.get_additional_serializer_context()
+        return global_adventure_trip_serializer_class(*args, **kwargs)
+
     def list(self, request, *args, **kwargs):
         response = super().list(request, args, kwargs)
         # 지역에 관한 스테이트
@@ -204,7 +228,7 @@ class TripMain(generics.ListCreateAPIView):
         queryset2 = self.filter_queryset(self.get_global_trip_queryset())
         serializer2 = self.get_global_trip_serializer(queryset2, many=True)
         queryset3 = self.filter_queryset(self.get_main_trip_queryset())
-        serializer3 = self.get_global_trip_serializer(queryset3, many=True)
+        serializer3 = self.get_global_adventure_trip_serializer(queryset3, many=True)
         queryset4 = self.filter_queryset(self.get_additional_queryset())
         serializer4 = self.get_additional_serializer(queryset4, many=True)
         context = {
@@ -513,8 +537,8 @@ def crawling(request):
     #     target = f.readline().strip
     driver = webdriver.Chrome()
     driver.get(
-        "https://www.airbnb.co.kr/experiences/246302?salt=ee0c9d12-1860-4084-a4e9-7a1863058336")
-    sleep(1.5)
+        "https://www.airbnb.co.kr/experiences/387627?salt=ee0c9d12-1860-4084-a4e9-7a1863058336")
+    sleep(3.0)
 
     for _ in range(7):
         driver.find_element_by_xpath(
@@ -523,7 +547,6 @@ def crawling(request):
     # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     sleep(3)
     trip_scrapy_selector = Selector(text=driver.page_source)
-    sleep(3)
     # 디테일 카테고리
     detail_category = trip_scrapy_selector.xpath(
         '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[1]/div[1]/div/text()').extract_first()
@@ -766,11 +789,12 @@ def crawling(request):
     time = [1, 2, 3, 4, 5]
     score = [4.6, 4.7, 4.8, 4.9, 5.0]
     duration = random.choice(time)
-    trip = Trip.objects.create(host=User.objects.get(pk=14),
+    # 서버족은 user 14 sub 7 state 2
+    trip = Trip.objects.create(host=User.objects.get(pk=1),
                                name=name,
-                               sub_category=SubTripCategory.objects.get(pk=7),
+                               sub_category=SubTripCategory.objects.get(pk=1),
                                detail_category=detail_category,
-                               state=State.objects.get(pk=2),
+                               state=State.objects.get(pk=1),
                                duration_time=duration,
                                host_about=host_description,
                                program=program,
@@ -858,7 +882,8 @@ def crawling(request):
                 score = review_score[score_check - 1]
 
                 user = User.objects.create_user(username=username,
-                                                password="anffp7844")
+                                                password="anffp7844",
+                                                trip_image=user_image,)
                 review = TripReview.objects.create(
                     user_set=user,
                     trip_set=trip,
@@ -870,18 +895,18 @@ def crawling(request):
         except:
             print("리뷰 갯수 부족")
             print("다음 가기 버튼이 없습니다.")
-    sleep(5)
+    sleep(2.5)
 
     # 리뷰 총 페이지의 사이즈 계산
     try:
         review_page_max = trip_scrapy_selector.xpath(
             '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div[6]/nav/span/div/ul/li[5]/button/div/text()'
         ).extract_first()
-        review_page_max = 2
+        review_page_max = 4
         print(review_page_max)
         for x in range(review_page_max):
             next_button.click()
-            sleep(5)
+            sleep(3)
             try:
                 for review_count in range(1, 6):
                     review_count = str(review_count)
@@ -916,7 +941,9 @@ def crawling(request):
                     score = review_score[score_check - 1]
 
                     user = User.objects.create_user(username=username,
-                                                    password="anffp7844")
+                                                    password="anffp7844",
+                                                    trip_image=user_image,
+                                                    )
                     review = TripReview.objects.create(
                         user_set=user,
                         trip_set=trip,
@@ -929,7 +956,6 @@ def crawling(request):
                 print("리뷰 갯수 부족")
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             print(x)
-        sleep(10)
     except:
         print("페이지 사이즈가 존재하지 않습니다. 덧글 끝가지 돌았습니다.")
 
