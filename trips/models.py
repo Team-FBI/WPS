@@ -171,7 +171,6 @@ class TripReview(models.Model):
     def __str__(self):
         return f"{self.user_set}의 리뷰"
 
-
 class TripLike(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,related_name="trip_likes")
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)

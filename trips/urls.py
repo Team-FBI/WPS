@@ -18,5 +18,4 @@ urlpatterns = [
     path("like/<int:pk>", TripLikeDestroyView.as_view()),
     path("crawling/", crawling),
     path("", ApiRoot.as_view(), name=ApiRoot.name),
-
 ]

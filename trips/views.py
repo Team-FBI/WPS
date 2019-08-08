@@ -513,7 +513,7 @@ def crawling(request):
     #     target = f.readline().strip
     driver = webdriver.Chrome()
     driver.get(
-        "https://www.airbnb.co.kr/experiences/595589?location=Seoul&currentTab=experience_tab&federatedSearchId=136a9766-b050-408d-b776-890f7d807880&searchId=5331868c-236b-482a-8c7b-311e1990dd3c&sectionId=242ab701-1480-4c24-9d3b-67bdd6a765af&source=p2")
+        "https://www.airbnb.co.kr/experiences/326205?salt=ee0c9d12-1860-4084-a4e9-7a1863058336")
     sleep(5)
 
     for _ in range(7):
@@ -728,11 +728,11 @@ def crawling(request):
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     time = [1, 2, 3, 4, 5]
     duration = random.choice(time)
-    trip = Trip.objects.create(host=User.objects.get(pk=1),
+    trip = Trip.objects.create(host=User.objects.get(pk=14),
                                name=name,
-                               sub_category=SubTripCategory.objects.get(pk=1),
+                               sub_category=SubTripCategory.objects.get(pk=7),
                                detail_category=detail_category,
-                               state=State.objects.get(pk=1),
+                               state=State.objects.get(pk=2),
                                duration_time=duration,
                                host_about=host_description,
                                program=program,
