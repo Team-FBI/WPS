@@ -146,11 +146,11 @@ class TripMain(generics.ListCreateAPIView):
 
     # 여기서 부터 글로벌 트립 이것이 글로벌 트립
     def get_global_trip_queryset(self):
-        return Trip.objects.all().order_by("?")[:13]
+        return Trip.objects.all().order_by("?")[:6]
 
 
     def get_main_trip_queryset(self):
-        return Trip.objects.filter(representation=True).order_by("?")[:7]
+        return Trip.objects.filter(representation=True, main_page=False).order_by("?")[:6]
 
     def get_global_trip_serializer_class(self):
         assert self.global_trip_serializer_class is not None, (
@@ -882,8 +882,8 @@ def crawling(request):
                 score = review_score[score_check - 1]
 
                 user = User.objects.create_user(username=username,
-                                                password="anffp7844",
-                                                trip_image=user_image,)
+                                                password="anffp7844"
+                                                )
                 review = TripReview.objects.create(
                     user_set=user,
                     trip_set=trip,
@@ -942,7 +942,7 @@ def crawling(request):
 
                     user = User.objects.create_user(username=username,
                                                     password="anffp7844",
-                                                    trip_image=user_image,
+
                                                     )
                     review = TripReview.objects.create(
                         user_set=user,

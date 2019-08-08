@@ -117,6 +117,9 @@ class Additional(models.Model):
     image_6 = models.CharField(blank=True, max_length=300)
     image_7 = models.CharField(blank=True, max_length=300)
 
+    def __str__(self):
+        return self.trip.name
+
     def save(self, *args, **kwargs):
         representation = self.trip
         representation.representation = True
@@ -132,6 +135,8 @@ class AdditionalSchedule(models.Model):
     image_2 = models.CharField(blank=True, max_length=300)
     image_3 = models.CharField(blank=True, max_length=300)
 
+    def __str__(self):
+        return self.additional.trip.name
 
 class TripSchedule(models.Model):
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name="host_trip_schedules")
