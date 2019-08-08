@@ -115,7 +115,7 @@ class TripMain(generics.ListCreateAPIView):
     state_serializer_class = TripStateSerializer
     global_trip_queryset = Trip.objects.all()
     global_trip_serializer_class = TripCategoryOnly
-    additional_serializer_class = MainAdditionalSerializer
+    additional_serializer_class = RepresentationTripSerializer
     name = 'trip-main'
 
     def get_state_queryset(self):
@@ -171,11 +171,8 @@ class TripMain(generics.ListCreateAPIView):
         kwargs['context'] = self.get_state_serializer_context()
         return global_trip_serializer_class(*args, **kwargs)
 
-    ########
-
     def get_additional_queryset(self):
-        # additional = Additional.objects.filter(main=True)
-        return Additional.objects.filter(main_page=True)
+        return Trip.objects.filter(main_page=True)
 
     def get_additional_serializer_class(self):
         assert self.additional_serializer_class is not None, (
@@ -211,7 +208,7 @@ class TripMain(generics.ListCreateAPIView):
         queryset4 = self.filter_queryset(self.get_additional_queryset())
         serializer4 = self.get_additional_serializer(queryset4, many=True)
         context = {
-            "representation_trip_5":serializer4.data,
+            "representation_trip_5": serializer4.data,
             "main_categories": response.data,
             "global_adventure_trip": serializer3.data,
             "global_recommend_trip": serializer2.data,
