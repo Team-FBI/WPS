@@ -61,19 +61,19 @@ class Trip(models.Model):
     sub_category = models.ForeignKey(SubTripCategory, on_delete=models.CASCADE, related_name="trips")
     detail_category = models.CharField(max_length=200, blank=True)
     state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="trips")
-    duration_time = models.SmallIntegerField(default=2)
+    duration_time = models.FloatField(default=2)
     host_about = models.TextField(default="게스트에게 자기 소개와 함께 트립 진행에 있어 나만의 특별함을 알려주세요.")
     program = models.TextField(default="트립을 처음부터 끝까지 실제 진행 순서대로 설명해 주세요.")
     place_info = models.TextField(default="트립에서 방문할 각 장소에 대해 설명하세요.")
     address = models.CharField(max_length=250, blank=True)
     guest_material = models.CharField(max_length=250, blank=True)
-    image_1 = models.ImageField(blank=True)
-    image_2 = models.ImageField(blank=True)
-    image_3 = models.ImageField(blank=True)
-    image_4 = models.ImageField(blank=True)
-    image_5 = models.ImageField(blank=True)
-    image_6 = models.ImageField(blank=True)
-    image_7 = models.ImageField(blank=True)
+    image_1 = models.CharField(blank=True, max_length=300)
+    image_2 = models.CharField(blank=True, max_length=300)
+    image_3 = models.CharField(blank=True, max_length=300)
+    image_4 = models.CharField(blank=True, max_length=300)
+    image_5 = models.CharField(blank=True, max_length=300)
+    image_6 = models.CharField(blank=True, max_length=300)
+    image_7 = models.CharField(blank=True, max_length=300)
     min_age = models.PositiveIntegerField(choices=MIN_AGE, default=18)
     compatibility = models.CharField(max_length=100, choices=COMPATIBILITY, default=YES)
     strength = models.CharField(max_length=100, choices=STRENGTH, default=LIGHT)
@@ -81,17 +81,21 @@ class Trip(models.Model):
     additional_condition = models.TextField(max_length=250, default="추가 요건(선택 사항)")
     # 신분증 지참 여부
     certification = models.BooleanField(default=False)
-    max_guest = models.SmallIntegerField(choices=MAX_GUEST, default=4)
+    max_guest = models.SmallIntegerField(default=4)
     price = models.IntegerField(default=30000)
     rating_score = models.FloatField(default=0)
     representation = models.BooleanField(default=False)
-    language = models.CharField(max_length=100, choices=LANGUAGE, default=ENGLISH)
+    main_page = models.BooleanField(default=False)
+    language = models.CharField(max_length=100)
 
     def trip_active(self):
         return TripSchedule.objects.filter(active=True)
 
     def review_count(self):
         return TripReview.objects.filter(trip_set=self).count()
+
+    def category(self):
+        return self.sub_category.category.name
 
     def __str__(self):
         return f"{self.name} {self.pk}"
@@ -111,7 +115,6 @@ class Additional(models.Model):
     image_5 = models.CharField(blank=True, max_length=300)
     image_6 = models.CharField(blank=True, max_length=300)
     image_7 = models.CharField(blank=True, max_length=300)
-    main_page = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         representation = self.trip

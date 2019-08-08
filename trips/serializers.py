@@ -9,7 +9,8 @@ class RecommendTrip(serializers.HyperlinkedModelSerializer):
     메인 카테고리 페이지내에서 보여 줄 트립의 목록
     표시사항: 이름, 사진, 평점(평점갯수)
     """
-    language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+
+    # language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
 
     class Meta:
         model = Trip
@@ -49,7 +50,8 @@ class TripCategoryOnly(serializers.HyperlinkedModelSerializer):
     메인 카테고리 페이지내에서 보여 줄 트립의 목록
     """
     provides = serializers.StringRelatedField(many=True)
-    language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+
+    # language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
 
     class Meta:
         model = Trip
@@ -146,7 +148,8 @@ class TripScheduleSerializer(serializers.ModelSerializer):
 
 class TripListSerializer(serializers.HyperlinkedModelSerializer):
     provides = serializers.StringRelatedField(many=True)
-    language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+
+    # language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
 
     class Meta:
         model = Trip
@@ -232,7 +235,6 @@ class MainAdditionalSerializer(serializers.ModelSerializer):
             "description",
             "image_1",
 
-
         )
 
 
@@ -247,7 +249,7 @@ class TripSerializer(serializers.ModelSerializer):
     schedules = TripScheduleSerializer(many=True, source="trip_active")
     provides = TripProvideSerializer(many=True)
     state = TripDetailStateSerializer()
-    language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
+    # language = serializers.ChoiceField(source="get_language_display", choices=LANGUAGE)
     additional = AdditionalSerializer(many=True)
 
     def paginated_review(self, obj):
@@ -361,3 +363,20 @@ class TripLikeCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TripLike
         fields = []
+
+
+class RepresentationTripSerializer(serializers.HyperlinkedModelSerializer):
+    additional = MainAdditionalSerializer(many=True)
+    host = HostSerializer()
+
+
+    class Meta:
+        model = Trip
+        fields = (
+            "name",
+            "category",
+            "image_1",
+            "url",
+            "host",
+            "additional",
+        )
