@@ -98,8 +98,8 @@ class ReservationDetailUpdateView(generics.RetrieveUpdateAPIView):
     @response_error_handler
     def get(self, request, *args, **kwargs):
         if request.user.id in (
-                self.get_queryset()[0].user.id,
-                self.get_queryset()[0].room.host.id,
+            self.get_queryset()[0].user.id,
+            self.get_queryset()[0].room.host.id,
         ):
             return super().get(request, *args, **kwargs)
         raise PermissionError(
@@ -158,11 +158,8 @@ class ReservationCreateView(generics.CreateAPIView):
     queryset = RoomReservation.objects.all()
 
     def perform_create(self, serializer):
-        room = get_object_or_404(Room, pk=self.kwargs.get('pk'))
-        serializer.save(
-            user=self.request.user,
-            room=room,
-        )
+        room = get_object_or_404(Room, pk=self.kwargs.get("pk"))
+        return serializer.save(user=self.request.user, room=room)
 
     @response_error_handler
     def post(self, request, *args, **kwargs):
@@ -173,3 +170,16 @@ class ReservationCreateView(generics.CreateAPIView):
             return super().post(request, *args, **kwargs)
         else:
             raise ValueError("Date already reservated!", "check for another date.")
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        data = dict(serializer.data)
+        pk = self.kwargs.get("pk")
+        target_room = Room.objects.get(id=pk)
+        imgurl = target_room.image.url if target_room.image else None
+        custom_data = {"id":instance.id, "room":pk, "title": target_room.title, "image": imgurl}
+        data.update(custom_data)
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
