@@ -25,7 +25,7 @@ class TripProvide(models.Model):
 
 class TripCategory(models.Model):
     name = models.CharField(max_length=200, unique=True)
-    image = models.ImageField(blank=True)
+    image = models.CharField(max_length=500, blank=True)
     description = models.CharField(max_length=250)
 
     class Meta:
