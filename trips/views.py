@@ -150,7 +150,7 @@ class TripMain(generics.ListCreateAPIView):
 
 
     def get_main_trip_queryset(self):
-        return Trip.objects.filter(representation=True, main_page=False).order_by("?")[:6]
+        return Trip.objects.filter(representation=True, main_page=False)
 
     def get_global_trip_serializer_class(self):
         assert self.global_trip_serializer_class is not None, (
