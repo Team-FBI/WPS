@@ -150,7 +150,7 @@ class TripMain(generics.ListCreateAPIView):
 
 
     def get_main_trip_queryset(self):
-        return Trip.objects.filter(sub_category__category__name="어드벤쳐").order_by("?")[:7]
+        return Trip.objects.filter(representation=True).order_by("?")[:7]
 
     def get_global_trip_serializer_class(self):
         assert self.global_trip_serializer_class is not None, (
