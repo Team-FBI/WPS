@@ -45,7 +45,7 @@ class TripCategory(models.Model):
 class SubTripCategory(models.Model):
     category = models.ForeignKey(TripCategory, on_delete=models.CASCADE, related_name="sub_tripcategory")
     state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="sub_tripcategory")
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200)
     image_1 = models.CharField(blank=True, max_length=300)
     image_2 = models.CharField(blank=True, max_length=300)
     image_3 = models.CharField(blank=True, max_length=300)
