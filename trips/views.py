@@ -491,3 +491,408 @@ class ApiRoot(generics.GenericAPIView):
             "review": reverse(TripReviewCreate.name, request=request),
 
         })
+
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from time import sleep
+import scrapy
+import selenium
+from scrapy import Spider
+from scrapy.selector import Selector
+from scrapy.http import Request
+from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import NoSuchElementException
+import random
+
+
+def crawling(request):
+    # txt_total = 430
+    # f = open("output.txt")
+    # for _ in range(txt_total):
+    #     target = f.readline().strip
+    driver = webdriver.Chrome()
+    driver.get(
+        "https://www.airbnb.co.kr/experiences/595589?location=Seoul&currentTab=experience_tab&federatedSearchId=136a9766-b050-408d-b776-890f7d807880&searchId=5331868c-236b-482a-8c7b-311e1990dd3c&sectionId=242ab701-1480-4c24-9d3b-67bdd6a765af&source=p2")
+    sleep(5)
+
+    for _ in range(7):
+        driver.find_element_by_xpath(
+            '//*[@id="Section16"]/div/div/div/section/div/div[1]/div/div/div/div/aside/div[2]/div/div/div[1]/div/button[2]').click()
+        sleep(1.5)
+    # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    sleep(5)
+    trip_scrapy_selector = Selector(text=driver.page_source)
+    sleep(5)
+    # 디테일 카테고리
+    detail_category = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[1]/div[1]/div/text()').extract_first()
+    print("1", end=" ")
+    print(detail_category)
+    # 타이틀
+    name = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[1]/div[2]/div/div/h2/div/text()').extract_first()
+    print("2", end=" ")
+    print(name)
+    # 스테이트 추후 보완 지역으로 임의 지정
+    state = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[2]/div/div[2]/div/button/text()').extract_first()
+    print("3")
+    print(state)
+    # 소요시간 나중에 숫자만 빼야됨
+    duration = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[3]/div/div[2]/div/text()'
+    ).extract_first()
+    print("4")
+    print(duration)
+    # 제공항목 ex) 음식, 음료 - 리스트
+    provide = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[4]/div/div[2]/div/text()').extract_first()
+    print("5", end=" ")
+    provide = provide.split(",")
+    print(provide)
+    print(len(provide))
+    # 제공 언어 - 리스트
+    language = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[5]/div/div[2]/div/text()').extract_first()
+    print(language)
+    # 호스트 소개
+    host_description = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[8]/div[1]/div[2]/div/div/div/div/text()').extract_first()
+    if host_description == None:
+        host_description = trip_scrapy_selector.xpath(
+            '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[9]/div[1]/div[2]/div/div/div/div/text()'
+        ).extract_first()
+    print("6", end=" ")
+    print(host_description)
+    # 프로그램
+    program = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[10]/div[1]/div[2]/div/div/div/div/text()').extract_first()
+    if program == None:
+        program = trip_scrapy_selector.xpath(
+            '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[11]/div[1]/div[2]/div/div/div/div/text()'
+        ).extract_first()
+    print("7", end=" ")
+    print(program)
+    # program = program[0]
+    # 추가사항
+    additional_condition = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[12]/div[1]/div[2]/div/div/text()').extract_first()
+    if additional_condition == None:
+        additional_condition = trip_scrapy_selector.xpath(
+            '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[13]/div[1]/div[2]/div/div/text()'
+        ).extract_first()
+    print("8", end=" ")
+    print(additional_condition)
+
+    # 제공항목에 대한 상세사항
+    # 제공항목 갯수에 따라 디스크립션 수집 갯수가 변하도록 함.
+    provide_description_list = []
+    front_xpath = '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[14]/div[1]/div[2]/div/div/div['
+    back_xpath = ']/div[2]/div/text()'
+    print(len(provide))
+    for count in range(len(provide)):
+        in_count = str(count + 1)
+        full_xpath = front_xpath + in_count + back_xpath
+        count += 1
+        provide_description = trip_scrapy_selector.xpath(full_xpath).extract_first()
+        provide_description_list.append(provide_description)
+
+    print(provide_description_list)
+    if provide_description_list[1] == None:
+        front_xpath = '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[15]/div[1]/div[2]/div/div/div['
+        back_xpath = ']/div[2]/div/text()'
+        provide_description_list = []
+
+        for count in range(len(provide)):
+            in_count = str(count + 1)
+            full_xpath = front_xpath + in_count + back_xpath
+            count += 1
+            provide_description = trip_scrapy_selector.xpath(full_xpath).extract_first()
+            provide_description_list.append(provide_description)
+
+        print(provide_description_list)
+
+    # provide_xpath = '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[14]/div[1]/div[2]/div/div/div[1]/div[2]/div/text()'
+    # provide_description = trip_scrapy_selector.xpath(
+    #     '//*[@id="Section16"]/div/div/div/section/div/div[2]/section/div[14]/div[1]/div[2]/div/div/div[1]/div[2]/div/text()').extract_first()
+    # print(provide_description)
+    image_1 = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[1]/div/div/div/div/aside/div[1]/div/div[1]/div/div/img/@src'
+    ).extract_first()
+    print(image_1)
+    image_2 = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[1]/div/div/div/div/aside/div[1]/div/div[2]/div/div/img/@src'
+    ).extract_first()
+    print(image_2)
+    image_3 = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[1]/div/div/div/div/aside/div[1]/div/div[3]/div/div/img/@src'
+    ).extract_first()
+    print(image_3)
+    image_4 = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[1]/div/div/div/div/aside/div[1]/div/div[4]/div/div/img/@src'
+    ).extract_first()
+    print(image_4)
+    image_5 = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[1]/div/div/div/div/aside/div[1]/div/div[5]/div/div/img/@src'
+    ).extract_first()
+    print(image_5)
+    image_6 = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[1]/div/div/div/div/aside/div[1]/div/div[6]/div/div/img/@src'
+    ).extract_first()
+    print(image_6)
+    image_7 = trip_scrapy_selector.xpath(
+        '//*[@id="Section16"]/div/div/div/section/div/div[1]/div/div/div/div/aside/div[1]/div/div[7]/div/div/img/@src'
+    ).extract_first()
+    print(image_7)
+
+    place_info = trip_scrapy_selector.xpath(
+        '//*[@id="Section9"]/div/div/div/section/div/div[2]/section/div/text()'
+    ).extract_first()
+    print(place_info)
+    # 위도, 경도
+    address = trip_scrapy_selector.xpath(
+        '//*[@id="site-content"]/div/div[2]/div[2]/div[1]/div/div[6]/div/div/div/div[1]/div/div/div[2]/a/@href'
+    ).extract_first()
+    # 위도 경도가 시작 되는 부분을 찾아서 슬라이싱 후 float로 변환
+    address = address[address.find("=") + 1:address.find("&")]
+    address = address.split(",")
+    latitude = float(address[0])
+    longitude = float(address[1])
+    print(address)
+    print(latitude)
+    print(longitude)
+
+    # 가격
+    price = trip_scrapy_selector.xpath(
+        '//*[@id="Section10"]/div/div/div/section/div/div[2]/section/div/div[1]/div/div/div[1]/div[2]/div/text()'
+    ).extract_first()
+    price = price[price.find("₩") + 1:price.find("/")]
+    price_list = []
+    for price_char in price:
+        if price_char.isdigit():
+            price_list.append(price_char)
+    price_string = "".join(price_list)
+    price_integer = int(price_string)
+    print(price_integer)
+
+    # 게스트 수
+    max_guest = trip_scrapy_selector.xpath(
+        '//*[@id="Section10"]/div/div/div/section/div/div[2]/section/div/div[1]/div/div/div[1]/div[3]/text()'
+    ).extract_first()
+    max_guest = max_guest[0]
+    max_guest = int(max_guest)
+    print(max_guest)
+
+    # 유저 후기
+    # 유저의 이미지
+    user_image_front = '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div['
+    user_image_back = ']/div[1]/div/div/div[1]/div/a/img/@src'
+    # user_image = trip_scrapy_selector.xpath(
+    #     '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div[1]/div[1]/div/div/div[1]/div/a/img/@src'
+    # ).extract_first()
+    # print(user_image)
+
+    # 후기 포스팅 날짜
+    # review_date_front = '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div['
+    # review_date_back = ']/div[1]/div/div/div[2]/div/div[1]/div/span/text()'
+    # review_date = trip_scrapy_selector.xpath(
+    #     '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div[1]/div[1]/div/div/div[2]/div/div[1]/div/span/text()'
+    # ).extract_first()
+    # print(review_date)
+
+    # 유저 네임
+    username_front = '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div['
+    username_back = ']/div[1]/div/div/div[2]/div/div[1]/div/a/span/text()'
+    # username = trip_scrapy_selector.xpath(
+    #     '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div[1]/div[1]/div/div/div[2]/div/div[1]/div/a/span/text()'
+    # ).extract_first()
+    # print(username)
+
+    # 리뷰 후기
+    review_description_front = '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div['
+    review_description_back = ']/div[2]/div/div/text()'
+    # review_description = trip_scrapy_selector.xpath(
+    #     '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div[1]/div[2]/div/div/text()'
+    # ).extract_first()
+    # print(review_description)
+
+    # 리뷰 점수
+    review_score_front = '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div['
+    review_score_bakc = ']/div[1]/div/div/div[2]/div/div[2]/span/@aria-label'
+    # review_score = trip_scrapy_selector.xpath(
+    #     '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div[1]/div[1]/div/div/div[2]/div/div[2]/span/@aria-label'
+    # ).extract_first()
+    # print(review_score)
+
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time = [1, 2, 3, 4, 5]
+    duration = random.choice(time)
+    trip = Trip.objects.create(host=User.objects.get(pk=1),
+                               name=name,
+                               sub_category=SubTripCategory.objects.get(pk=1),
+                               detail_category=detail_category,
+                               state=State.objects.get(pk=1),
+                               duration_time=duration,
+                               host_about=host_description,
+                               program=program,
+                               place_info=place_info,
+                               latitude=latitude,
+                               longitude=longitude,
+                               guest_material="선택사항",
+                               min_age=18,
+                               compatibility="YES",
+                               strength="LIGHT",
+                               technic="BEGINNER",
+                               additional_condition=additional_condition,
+                               certification=False,
+                               max_guest=max_guest,
+                               price=price_integer,
+                               rating_score=0,
+                               representation=False,
+                               language=language,
+                               image_1=image_1,
+                               image_2=image_2,
+                               image_3=image_3,
+                               image_4=image_4,
+                               image_5=image_5,
+                               image_6=image_6,
+
+                               )
+    print("*********************")
+    provide_count = len(provide)
+    provide_list = provide
+    num = 0
+    while True:
+        if num == provide_count - 1:
+            break
+        provide = provide_list[num]
+        print(provide)
+        if len(Provide.objects.filter(name=provide)) != 0:
+            provide = Provide.objects.get(name=provide)
+            TripProvide.objects.create(trip_set=trip, provide_set=provide, description=provide_description_list[num])
+            num += 1
+            if num == provide_count -1:
+                break
+        else:
+            provide = Provide.objects.create(name=provide)
+            TripProvide.objects.create(trip_set=trip, provide_set=provide, description=provide_description_list[num])
+            num += 1
+            if num == provide_count - 1:
+                break
+
+    try:
+        next_button = driver.find_element_by_xpath(
+            '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div[6]/nav/span/div/ul/li[6]/button')
+    except:
+        print("gg")
+        try:
+            for review_count in range(1, 6):
+                review_count = str(review_count)
+                # 유저 이미지
+                user_image_complete = user_image_front + review_count + user_image_back
+                user_image = trip_scrapy_selector.xpath(user_image_complete).extract_first()
+                print(user_image)
+
+                # 후기 포스팅 날짜
+                # review_date_complete = review_date_front + review_count + review_date_back
+                # review_date = trip_scrapy_selector.xpath(review_date_complete).extract_first()
+                # print(review_date)
+
+                # 유저네임
+                username_complete = username_front + review_count + username_back
+                username = trip_scrapy_selector.xpath(username_complete).extract_first()
+                username = username.lower()
+                if " " in username:
+                    username = username.split(" ")
+                    username = "".join(username)
+                print(username)
+
+                # 리뷰 후기에 관한
+                review_description_complete = review_description_front + review_count + review_description_back
+                review_description = trip_scrapy_selector.xpath(review_description_complete).extract_first()
+                print(review_description)
+
+                # 리뷰 점수에 관한 것
+                review_score_complete = review_score_front + review_count + review_score_bakc
+                review_score = trip_scrapy_selector.xpath(review_score_complete).extract_first()
+                score_check = review_score.find("/")
+                score = review_score[score_check - 1]
+
+                user = User.objects.create_user(username=username,
+                                                password="anffp7844")
+                review = TripReview.objects.create(
+                    user_set=user,
+                    trip_set=trip,
+                    description=review_description,
+                    rating_score=score,
+                )
+
+                print(score)
+        except:
+            print("리뷰 갯수 부족")
+            print("다음 가기 버튼이 없습니다.")
+    sleep(5)
+
+    # 리뷰 총 페이지의 사이즈 계산
+    # try:
+    #     review_page_max = trip_scrapy_selector.xpath(
+    #         '//*[@id="Section12"]/div/div/div/section/div/div[2]/section/div/div[6]/nav/span/div/ul/li[5]/button/div/text()'
+    #     ).extract_first()
+    #     review_page_max = int(review_page_max)
+    #     print(review_page_max)
+    #     for x in range(review_page_max):
+    #         next_button.click()
+    #         sleep(5)
+    #         try:
+    #             for review_count in range(1, 6):
+    #                 review_count = str(review_count)
+    #                 # 유저 이미지
+    #                 user_image_complete = user_image_front + review_count + user_image_back
+    #                 user_image = trip_scrapy_selector.xpath(user_image_complete).extract_first()
+    #                 print(user_image)
+    #
+    #                 # 후기 포스팅 날짜
+    #                 # review_date_complete = review_date_front + review_count + review_date_back
+    #                 # review_date = trip_scrapy_selector.xpath(review_date_complete).extract_first()
+    #                 # print(review_date)
+    #
+    #                 # 유저네임
+    #                 username_complete = username_front + review_count + username_back
+    #                 username = trip_scrapy_selector.xpath(username_complete).extract_first()
+    #                 username = username.lower()
+    #                 if " " in username:
+    #                     username = username.split(" ")
+    #                     username = "".join(username)
+    #                 print(username)
+    #
+    #                 # 리뷰 후기에 관한
+    #                 review_description_complete = review_description_front + review_count + review_description_back
+    #                 review_description = trip_scrapy_selector.xpath(review_description_complete).extract_first()
+    #                 print(review_description)
+    #
+    #                 # 리뷰 점수에 관한 것
+    #                 review_score_complete = review_score_front + review_count + review_score_bakc
+    #                 review_score = trip_scrapy_selector.xpath(review_score_complete).extract_first()
+    #                 score_check = review_score.find("/")
+    #                 score = review_score[score_check - 1]
+    #
+    #                 user = User.objects.create_user(username=username,
+    #                                                 password="anffp7844")
+    #                 review = TripReview.objects.create(
+    #                     user_set=user,
+    #                     trip_set=trip,
+    #                     description=review_description,
+    #                     rating_score=score,
+    #                 )
+    #
+    #                 print(score)
+    #         except:
+    #             print("리뷰 갯수 부족")
+    #         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    #         print(x)
+    #     sleep(10)
+    # except:
+    #     print("페이지 사이즈가 존재하지 않습니다. 덧글 끝가지 돌았습니다.")
+
+    driver.close()

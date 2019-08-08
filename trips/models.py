@@ -65,7 +65,8 @@ class Trip(models.Model):
     host_about = models.TextField(default="게스트에게 자기 소개와 함께 트립 진행에 있어 나만의 특별함을 알려주세요.")
     program = models.TextField(default="트립을 처음부터 끝까지 실제 진행 순서대로 설명해 주세요.")
     place_info = models.TextField(default="트립에서 방문할 각 장소에 대해 설명하세요.")
-    address = models.CharField(max_length=250, blank=True)
+    latitude = models.FloatField(default=0)
+    longitude = models.FloatField(default=0)
     guest_material = models.CharField(max_length=250, blank=True)
     image_1 = models.CharField(blank=True, max_length=300)
     image_2 = models.CharField(blank=True, max_length=300)
@@ -162,7 +163,7 @@ class Reservation(models.Model):
 class TripReview(models.Model):
     user_set = models.ForeignKey(User, on_delete=models.CASCADE, related_name="trip_reviews")
     trip_set = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name="trip_reviews")
-    reservation_set = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name="trip_reviews")
+    reservation_set = models.ForeignKey(Reservation, on_delete=models.CASCADE, related_name="trip_reviews", null=True)
     description = models.TextField(blank=True)
     rating_score = models.SmallIntegerField(default=5)
     created_at = models.DateTimeField(auto_now_add=True)
