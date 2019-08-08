@@ -173,3 +173,20 @@ class ReservationCreateView(generics.CreateAPIView):
             return super().post(request, *args, **kwargs)
         else:
             raise ValueError("Date already reservated!", "check for another date.")
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        data = dict(serializer.data)
+        pk = self.kwargs.get("pk")
+        target_room = Room.objects.get(id=pk)
+        imgurl = target_room.image.url if target_room.image else None
+        custom_data = {
+            "id": pk,
+            "title": target_room.title,
+            "image": imgurl
+        }
+        data.update(custom_data)
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
