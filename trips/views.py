@@ -146,7 +146,7 @@ class TripMain(generics.ListCreateAPIView):
 
     # 여기서 부터 글로벌 트립 이것이 글로벌 트립
     def get_global_trip_queryset(self):
-        return Trip.objects.all().order_by("?")[:6]
+        return Trip.objects.all().filter(main_page=False, representation=False).order_by("?")[:6]
 
 
     def get_main_trip_queryset(self):
