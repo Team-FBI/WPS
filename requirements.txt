@@ -27,7 +27,7 @@ jmespath==0.9.4
 lazy-object-proxy==1.4.1
 MarkupSafe==1.1.1
 mccabe==0.6.1
-Pillow==6.1.0
+Pillow==6.2.0
 pyasn1==0.4.5
 pylint==2.3.1
 pyparsing==2.4.0
