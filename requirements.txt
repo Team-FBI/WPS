@@ -15,7 +15,7 @@ django-cors-headers==3.0.2
 django-extensions==2.1.9
 django-filter==2.2.0
 django-storages==1.7.1
-djangorestframework==3.9.4
+djangorestframework==3.11.2
 docutils==0.14
 drf-yasg==1.16.0
 idna==2.8
