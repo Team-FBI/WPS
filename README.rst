@@ -1,3 +1,10 @@
+LOG
+---
+
+- 210421: solved Dependacny bot alert. / @junehan-dev
+
+Old
+---
 ## Front
 - 로그인 회원가입 검색
 ### 추후
@@ -21,4 +28,5 @@
 
 - 메인페이지 ( 검색)
 - 검색 이후 디테일페이지
+
 
